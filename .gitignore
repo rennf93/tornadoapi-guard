@@ -205,3 +205,26 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# UV
+uv.lock
+
+# Redis
+data/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+
+# Project-specific
+manual_testing/
+ZZZ/
+.mcp.json
+.claude/
+.cursor/
+.kiro/

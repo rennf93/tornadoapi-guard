@@ -1,0 +1,53 @@
+services:
+    tornadoapi-guard-example:
+      build:
+        context: .
+        args:
+          PYTHON_VERSION: ${PYTHON_VERSION:-3.10}
+      image: tornadoapi-guard-example-py${PYTHON_VERSION:-3.10}
+      command: python examples/main.py
+      ports:
+        - "8000:8000"
+      environment:
+        - REDIS_URL=redis://redis:6379
+        - REDIS_PREFIX=${REDIS_PREFIX:-"tornadoapi_guard:"}
+        - IPINFO_TOKEN=${IPINFO_TOKEN:-"test_token"}
+      volumes:
+        - ./examples:/app/examples:z
+        - ./tornadoapi_guard:/app/tornadoapi_guard:z
+        - ./docs:/app/docs:z
+      depends_on:
+        redis:
+          condition: service_started
+
+    tornadoapi-guard:
+      build:
+        context: .
+        args:
+          PYTHON_VERSION: ${PYTHON_VERSION:-3.10}
+      image: tornadoapi-guard-py${PYTHON_VERSION:-3.10}
+      command: pytest -v --cov=.
+      environment:
+        - REDIS_URL=redis://redis:6379
+        - REDIS_PREFIX=${REDIS_PREFIX:-"test:tornadoapi_guard:"}
+        - IPINFO_TOKEN=${IPINFO_TOKEN:-"test_token"}
+      volumes:
+        - ./tornadoapi_guard:/app/tornadoapi_guard:z
+        - ./tests:/app/tests:z
+        - ./pyproject.toml:/app/pyproject.toml:z
+        - ./uv.lock:/app/uv.lock:z
+        - ./vulture_whitelist.py:/app/vulture_whitelist.py:z
+      depends_on:
+        redis:
+          condition: service_started
+
+    redis:
+      image: redis:alpine
+      ports:
+        - "6379:6379"
+      volumes:
+        - redis-data:/data
+      command: redis-server --save 60 1 --loglevel warning
+
+volumes:
+  redis-data:
