@@ -378,7 +378,7 @@ class SecurityMiddleware:
                 ttl=self.config.cloud_ip_refresh_interval,
             )
         else:
-            cloud_handler.refresh(self.config.block_cloud_providers)
+            await cloud_handler.refresh(self.config.block_cloud_providers)
         self.last_cloud_ip_refresh = int(time.time())
 
     async def create_error_response(

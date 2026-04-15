@@ -1,0 +1,141 @@
+---
+
+title: IPBanManager API - TornadoAPI Guard
+description: API reference for TornadoAPI Guard's IP banning system, including automatic and manual IP management
+keywords: ip ban api, ban management, ip blocking api, security api
+---
+
+IPBanManager
+============
+
+The `IPBanManager` class handles temporary IP bans in your Tornado application.
+
+___
+
+Overview
+--------
+
+```python
+from tornadoapi_guard import IPBanManager
+
+ip_ban_manager = IPBanManager()
+```
+
+The `IPBanManager` uses an in-memory cache to track banned IPs and their ban durations.
+
+___
+
+Distributed Banning
+-------------------
+
+When Redis is enabled:
+
+- Bans are shared across instances
+- Ban expiration is handled automatically
+- Supports atomic ban operations
+
+```python
+# Cluster-wide ban
+await ip_ban_manager.ban_ip("192.168.1.1", 3600, distributed=True)
+
+# Check ban status across cluster
+is_banned = await ip_ban_manager.is_ip_banned("192.168.1.1", check_redis=True)
+```
+
+___
+
+Methods
+-------
+
+ban_ip
+------
+
+Ban an IP address for a specified duration.
+
+```python
+async def ban_ip(ip: str, duration: int) -> None
+```
+
+**Parameters**:
+- `ip`: The IP address to ban
+- `duration`: Ban duration in seconds
+
+**Example**:
+
+```python
+await ip_ban_manager.ban_ip("192.168.1.1", 3600)  # Ban for 1 hour
+```
+
+is_ip_banned
+------------
+
+Check if an IP address is currently banned.
+
+```python
+async def is_ip_banned(ip: str) -> bool
+```
+
+**Parameters**:
+- `ip`: The IP address to check
+
+**Returns**:
+- `bool`: True if the IP is banned, False otherwise
+
+**Example**:
+
+```python
+is_banned = await ip_ban_manager.is_ip_banned("192.168.1.1")
+```
+
+reset
+-----
+
+Reset all banned IPs.
+
+```python
+async def reset() -> None
+```
+
+**Example**:
+
+```python
+await ip_ban_manager.reset()
+```
+
+___
+
+Usage with SecurityMiddleware
+-----------------------------
+
+The `IPBanManager` is automatically integrated when you use the `SecurityMiddleware`:
+
+```python
+import asyncio
+import tornado.web
+from tornadoapi_guard import SecurityConfig, SecurityHandler, SecurityMiddleware
+
+config = SecurityConfig(
+    auto_ban_threshold=5,
+    auto_ban_duration=3600
+)
+middleware = SecurityMiddleware(config=config)
+
+
+class ExampleHandler(SecurityHandler):
+    async def get(self) -> None:
+        self.write({"status": "ok"})
+
+
+async def main() -> None:
+    await middleware.initialize()
+    app = tornado.web.Application(
+        [(r"/", ExampleHandler)],
+        security_middleware=middleware,
+    )
+    app.listen(8000)
+    await asyncio.Event().wait()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```

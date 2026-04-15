@@ -65,6 +65,7 @@ nav:
         - Components: tutorial/security/detection-engine/components.md
         - Configuration: tutorial/security/detection-engine/configuration.md
         - Performance Tuning: tutorial/security/detection-engine/performance-tuning.md
+      - HTTP Security Headers: tutorial/security/http-security-headers.md
       - Proxy Security: tutorial/security/proxy-security.md
       - Custom Patterns: tutorial/security/custom-patterns.md
       - Security Monitoring: tutorial/security/monitoring.md
@@ -78,6 +79,8 @@ nav:
   - API Reference:
     - Overview: api/overview.md
     - SecurityMiddleware: api/security-middleware.md
+    - SecurityHandler: api/security-handler.md
+    - Adapters: api/adapters.md
     - Core Architecture: api/core-architecture.md
     - SecurityDecorators: api/decorators.md
     - BehaviorManager: api/behavior-manager.md

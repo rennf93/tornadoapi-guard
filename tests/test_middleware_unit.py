@@ -468,9 +468,9 @@ async def test_refresh_cloud_ip_ranges_sync_path(
     simple_middleware: SecurityMiddleware,
 ) -> None:
     simple_middleware.config.block_cloud_providers = {"AWS"}
-    cloud_handler.refresh = MagicMock()
+    cloud_handler.refresh = AsyncMock()
     await simple_middleware.refresh_cloud_ip_ranges()
-    cloud_handler.refresh.assert_called_once()
+    cloud_handler.refresh.assert_awaited_once()
     assert simple_middleware.last_cloud_ip_refresh > 0
 
 
