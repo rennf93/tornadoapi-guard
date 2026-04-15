@@ -47,7 +47,6 @@ dev = [
     "pytest-mock",
     "radon",
     "ruff",
-    "safety",
     "types-cachetools",
     "types-requests",
     "vulture",
@@ -106,7 +105,7 @@ asyncio_mode = "auto"
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 asyncio_default_fixture_loop_scope = "function"
-addopts = "--cov=tornadoapi_guard --cov-report=term-missing"
+addopts = "--cov=tornadoapi_guard --cov-branch --cov-report=term-missing"
 markers = [
     "asyncio: mark tests as async"
 ]
@@ -137,6 +136,11 @@ follow_imports = "skip"
 
 [[tool.mypy.overrides]]
 module = ["guard_core", "guard_core.*", "guard_core.core.*", "guard_core.handlers.*", "guard_core.protocols.*", "guard_core.decorators.*", "guard_core.utils", "guard_core.detection_engine.*"]
+ignore_missing_imports = true
+follow_imports = "skip"
+
+[[tool.mypy.overrides]]
+module = ["guard_agent", "guard_agent.*"]
 ignore_missing_imports = true
 follow_imports = "skip"
 
@@ -229,7 +233,9 @@ ignore = []
 exclude = ["tests", ".venv", "vulture_whitelist.py", "examples", "docs", "manual_testing"]
 extend_exclude = ["conftest.py", "setup.py"]
 known_first_party = ["tornadoapi_guard", "guard_core"]
-per_rule_ignores = { "DEP002" = [
+per_rule_ignores = { "DEP001" = [
+    "guard_agent",
+], "DEP002" = [
     "guard-core",
     "httpx",
     "bandit",
@@ -248,7 +254,6 @@ per_rule_ignores = { "DEP002" = [
     "pytest-mock",
     "radon",
     "ruff",
-    "safety",
     "types-cachetools",
     "types-requests",
     "vulture",

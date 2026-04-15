@@ -1,35 +1,169 @@
-"""
-Tornado adapters for guard-core.
+from __future__ import annotations
 
-Since Tornado is async, this adapter uses the async guard-core
-(not guard_core.sync), matching FastAPI Guard's approach.
+from collections.abc import Mapping, MutableMapping
+from types import SimpleNamespace
+from typing import TYPE_CHECKING, Any, cast
+from urllib.parse import urlparse, urlunparse
+from weakref import WeakKeyDictionary
 
-The adapter must implement the same interface as:
-- FastAPI Guard:  guard/adapters.py (StarletteGuardRequest, StarletteGuardResponse)
-- FlaskAPI Guard: flaskapi_guard/adapters.py (FlaskGuardRequest, FlaskGuardResponse)
+from guard_core.protocols.response_protocol import GuardResponse
 
-Key Tornado concepts to map:
-- RequestHandler is the main abstraction (not a separate request/response pair)
-- RequestHandler.request -> HTTPServerRequest
-- RequestHandler.prepare() is the async hook for pre-processing (security pipeline)
-- RequestHandler.on_finish() is the post-processing hook (metrics, logging)
-- No built-in response object — responses are written via handler.write()/handler.finish()
-- request.remote_ip for client IP
-- request.headers for headers (HTTPHeaders, case-insensitive)
-- request.arguments for query params (returns bytes, needs decoding)
-- request.body for raw body (bytes, already available — no await needed)
-- request.protocol for scheme ("http" or "https")
-- request.full_url() for complete URL
+if TYPE_CHECKING:
+    from tornado.web import RequestHandler
 
-Required adapter classes:
-- TornadoGuardRequest: wraps RequestHandler + HTTPServerRequest -> GuardRequest interface
-- TornadoGuardResponse: standalone response container -> GuardResponse interface
-- TornadoResponseFactory: creates TornadoGuardResponse instances
-- apply_guard_response(): writes a guard response back through the handler
 
-Per-request state (equivalent to request.state in Starlette / flask.g in Flask):
-- Tornado has no built-in per-request state container
-- Attach a _guard_state object to the handler instance
-"""
+_guard_state_store: WeakKeyDictionary[Any, SimpleNamespace] = WeakKeyDictionary()
 
-# TODO: Implement adapters
+
+def get_guard_state(handler: RequestHandler) -> SimpleNamespace:
+    state = _guard_state_store.get(handler)
+    if state is None:
+        state = SimpleNamespace()
+        _guard_state_store[handler] = state
+    return state
+
+
+class TornadoGuardRequest:
+    def __init__(self, handler: RequestHandler) -> None:
+        self._handler = handler
+        self._request = handler.request
+        self._state = get_guard_state(handler)
+
+    @property
+    def url_path(self) -> str:
+        return self._request.path
+
+    @property
+    def url_scheme(self) -> str:
+        return self._request.protocol
+
+    @property
+    def url_full(self) -> str:
+        return self._request.full_url()
+
+    def url_replace_scheme(self, scheme: str) -> str:
+        parsed = urlparse(self._request.full_url())
+        return urlunparse(parsed._replace(scheme=scheme))
+
+    @property
+    def method(self) -> str:
+        return self._request.method or "GET"
+
+    @property
+    def client_host(self) -> str | None:
+        return self._request.remote_ip
+
+    @property
+    def headers(self) -> Mapping[str, str]:
+        return cast(Mapping[str, str], self._request.headers)
+
+    @property
+    def query_params(self) -> Mapping[str, str]:
+        return {
+            key: values[0].decode("utf-8", errors="replace")
+            for key, values in self._request.query_arguments.items()
+            if values
+        }
+
+    async def body(self) -> bytes:
+        return self._request.body or b""
+
+    @property
+    def state(self) -> Any:
+        return self._state
+
+    @property
+    def scope(self) -> dict[str, Any]:
+        return {
+            "handler": self._handler,
+            "app": self._handler.application,
+            "application": self._handler.application,
+            "settings": self._handler.application.settings,
+            "path": self._request.path,
+            "method": self._request.method,
+        }
+
+
+class TornadoGuardResponse:
+    def __init__(
+        self,
+        status_code: int,
+        headers: MutableMapping[str, str] | None = None,
+        body: bytes | None = None,
+    ) -> None:
+        self._status_code = status_code
+        self._headers: MutableMapping[str, str] = headers if headers is not None else {}
+        self._body = body
+
+    @property
+    def status_code(self) -> int:
+        return self._status_code
+
+    @property
+    def headers(self) -> MutableMapping[str, str]:
+        return self._headers
+
+    @property
+    def body(self) -> bytes | None:
+        return self._body
+
+    @classmethod
+    def from_handler(cls, handler: RequestHandler) -> TornadoGuardResponse:
+        raw_headers = getattr(handler, "_headers", None)
+        headers: dict[str, str] = (
+            {name: value for name, value in raw_headers.get_all()}
+            if raw_headers is not None
+            else {}
+        )
+        buffer = getattr(handler, "_write_buffer", None)
+        body = b"".join(buffer) if buffer else b""
+        return cls(
+            status_code=handler.get_status(),
+            headers=headers,
+            body=body,
+        )
+
+
+class TornadoResponseFactory:
+    def create_response(self, content: str, status_code: int) -> TornadoGuardResponse:
+        encoded = content.encode("utf-8")
+        return TornadoGuardResponse(
+            status_code=status_code,
+            headers={
+                "Content-Type": "text/plain; charset=utf-8",
+                "Content-Length": str(len(encoded)),
+            },
+            body=encoded,
+        )
+
+    def create_redirect_response(
+        self, url: str, status_code: int
+    ) -> TornadoGuardResponse:
+        return TornadoGuardResponse(
+            status_code=status_code,
+            headers={"Location": url, "Content-Length": "0"},
+            body=b"",
+        )
+
+
+def apply_guard_response(
+    handler: RequestHandler, guard_response: GuardResponse
+) -> None:
+    handler.clear()
+    handler.set_status(guard_response.status_code)
+    for key, value in guard_response.headers.items():
+        handler.set_header(key, value)
+    body = guard_response.body
+    if body:
+        handler.write(body)
+    handler.finish()
+
+
+def unwrap_response(guard_response: GuardResponse) -> TornadoGuardResponse:
+    if isinstance(guard_response, TornadoGuardResponse):
+        return guard_response
+    return TornadoGuardResponse(
+        status_code=guard_response.status_code,
+        headers=dict(guard_response.headers),
+        body=guard_response.body,
+    )
