@@ -58,6 +58,8 @@ async def test_get_security_middleware_rejects_wrong_type() -> None:
 
 
 async def test_handler_on_finish_schedules_post_processing() -> None:
+    import asyncio
+
     config = SecurityConfig(
         geo_ip_handler=None,
         enable_redis=False,
@@ -80,7 +82,8 @@ async def test_handler_on_finish_schedules_post_processing() -> None:
     handler = HandlerClass(app, request)
 
     handler.on_finish()
-    assert tracker.await_count >= 0
+    await asyncio.sleep(0)
+    tracker.assert_awaited_once_with(handler)
     await middleware.reset()
 
 
@@ -88,13 +91,13 @@ class _FakeConnection:
     def __init__(self) -> None:
         self.context = tornado.httputil.RequestStartLine("GET", "/", "HTTP/1.1")
 
-    def set_close_callback(self, callback: object) -> None:
+    def set_close_callback(self, _callback: object) -> None:
         pass
 
-    def write_headers(self, *args: object, **kwargs: object) -> None:
+    def write_headers(self, *_args: object, **_kwargs: object) -> None:
         pass
 
-    def write(self, *args: object, **kwargs: object) -> None:
+    def write(self, *_args: object, **_kwargs: object) -> None:
         pass
 
     def finish(self) -> None:

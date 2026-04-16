@@ -1,3 +1,10 @@
+---
+
+title: Detection Engine Architecture - TornadoAPI Guard
+description: Architectural breakdown of the TornadoAPI Guard Detection Engine including pattern compilers, validators, and the chain of responsibility
+keywords: detection engine architecture, pattern compiler, validator chain, tornado security
+---
+
 # Detection Engine Architecture
 
 The TornadoAPI Guard Detection Engine uses a modular architecture that provides timeout-protected pattern matching with optional preprocessing and heuristic analysis. This document describes the actual implementation and how components interact.

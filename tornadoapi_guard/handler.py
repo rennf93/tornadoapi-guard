@@ -7,6 +7,8 @@ from tornado.web import RequestHandler
 from tornadoapi_guard.adapters import apply_guard_response
 from tornadoapi_guard.middleware import SecurityMiddleware
 
+_background_tasks: set[asyncio.Task[None]] = set()
+
 
 class SecurityHandler(RequestHandler):
     async def prepare(self) -> None:
@@ -25,7 +27,9 @@ class SecurityHandler(RequestHandler):
         middleware = self._get_security_middleware()
         if middleware is None:
             return
-        asyncio.create_task(middleware.run_post_processing(self))
+        task = asyncio.create_task(middleware.run_post_processing(self))
+        _background_tasks.add(task)
+        task.add_done_callback(_background_tasks.discard)
 
     def _get_security_middleware(self) -> SecurityMiddleware | None:
         value = self.application.settings.get("security_middleware")

@@ -81,6 +81,10 @@ async def custom_response_modifier(response: GuardResponse) -> GuardResponse:
     return response
 
 
+_REDIS_URL = os.getenv("REDIS_URL", "")
+_ENABLE_REDIS = bool(_REDIS_URL)
+
+
 security_config = SecurityConfig(
     whitelist=["127.0.0.1", "::1", "10.0.0.0/8"],
     blacklist=["192.168.100.0/24"],
@@ -98,9 +102,9 @@ security_config = SecurityConfig(
     enable_penetration_detection=True,
     cloud_ip_refresh_interval=1800,
     log_format="json",
-    enable_redis=True,
-    redis_url="redis://localhost:6379",
-    redis_prefix="tornadoapi_guard:",
+    enable_redis=_ENABLE_REDIS,
+    redis_url=_REDIS_URL or "redis://localhost:6379",
+    redis_prefix=os.getenv("REDIS_PREFIX", "tornadoapi_guard:"),
     enforce_https=False,
     custom_request_check=custom_request_check,
     custom_response_modifier=custom_response_modifier,

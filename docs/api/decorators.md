@@ -62,8 +62,8 @@ ___
 Main Decorator Class
 ---------------
 
-. SecurityDecorator
-----------------------------
+SecurityDecorator
+-----------------
 
 ::: guard_core.decorators.SecurityDecorator
 
@@ -85,15 +85,15 @@ ___
 Base Classes
 ------------
 
-. BaseSecurityDecorator
+BaseSecurityDecorator
 ---------------------
 
 ::: guard_core.decorators.base.BaseSecurityDecorator
 
 Base class providing core decorator functionality and route configuration management.
 
-. RouteConfig
----------------------
+RouteConfig
+-----------
 
 ::: guard_core.decorators.base.RouteConfig
 
@@ -106,8 +106,8 @@ Mixin Classes
 
 The decorator system uses mixins to organize different types of security features:
 
-. AccessControlMixin
----------------------
+AccessControlMixin
+------------------
 
 ::: guard_core.decorators.access_control.AccessControlMixin
 
@@ -130,8 +130,8 @@ class AccessIPWhitelistHandler(SecurityHandler):
         self.write({"message": "Access granted from whitelisted IP"})
 ```
 
-. AuthenticationMixin
----------------------
+AuthenticationMixin
+-------------------
 
 ::: guard_core.decorators.authentication.AuthenticationMixin
 
@@ -153,8 +153,8 @@ class AuthBearerHandler(SecurityHandler):
         self.write({"authenticated": True})
 ```
 
-. RateLimitingMixin
----------------------
+RateLimitingMixin
+-----------------
 
 ::: guard_core.decorators.rate_limiting.RateLimitingMixin
 
@@ -174,8 +174,8 @@ class RateCustomLimitHandler(SecurityHandler):
         self.write({"message": "rate limited"})
 ```
 
-. BehavioralMixin
----------------------
+BehavioralMixin
+---------------
 
 ::: guard_core.decorators.behavioral.BehavioralMixin
 
@@ -197,7 +197,7 @@ class BehaviorUsageHandler(SecurityHandler):
         self.write({"message": "Usage monitoring active"})
 ```
 
-. ContentFilteringMixin
+ContentFilteringMixin
 ---------------------
 
 ::: guard_core.decorators.content_filtering.ContentFilteringMixin
@@ -221,7 +221,7 @@ class ContentJSONOnlyHandler(SecurityHandler):
         self.write({"message": "JSON content received"})
 ```
 
-. AdvancedMixin
+AdvancedMixin
 -------------
 
 ::: guard_core.decorators.advanced.AdvancedMixin
@@ -325,7 +325,7 @@ ___
 Best Practices
 --------------
 
-. Decorator Order
+Decorator Order
 ---------------------
 
 Apply decorators in logical order, with more specific restrictions first:
@@ -341,8 +341,8 @@ class AdminSensitiveHandler(SecurityHandler):
         self.write({"status": "admin action"})
 ```
 
-. Combining Behavioral Analysis
----------------------
+Combining Behavioral Analysis
+-----------------------------
 
 Use multiple behavioral decorators for comprehensive monitoring:
 
@@ -355,8 +355,8 @@ class RewardsHandler(SecurityHandler):
         self.write({"reward": "rare_item", "value": 1000})
 ```
 
-. Geographic and Cloud Controls
----------------------
+Geographic and Cloud Controls
+-----------------------------
 
 Combine geographic and cloud provider controls:
 
@@ -368,8 +368,8 @@ class RestrictedHandler(SecurityHandler):
         self.write({"data": "geo-restricted"})
 ```
 
-. Content Filtering
----------------------
+Content Filtering
+--------------------
 
 Apply content filtering for upload endpoints:
 

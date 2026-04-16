@@ -1,3 +1,10 @@
+---
+
+title: Detection Engine Overview - TornadoAPI Guard
+description: Introduction to the TornadoAPI Guard Detection Engine and its pattern-based threat detection capabilities
+keywords: detection engine, pattern matching, threat detection, tornado security
+---
+
 # Detection Engine
 
 The TornadoAPI Guard Detection Engine is an enhanced pattern-based threat detection system that provides protection against common web application attacks through timeout-protected pattern matching and optional heuristic analysis.

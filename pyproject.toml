@@ -144,6 +144,12 @@ module = ["guard_agent", "guard_agent.*"]
 ignore_missing_imports = true
 follow_imports = "skip"
 
+[tool.pymarkdown.extensions]
+front-matter = {enabled = true}
+
+[tool.pymarkdown.plugins.md003]
+enabled = false
+
 [tool.pymarkdown.plugins.md007]
 # MD007 - Unordered list indentation (set to 2 spaces)
 enabled = true

@@ -1,3 +1,10 @@
+---
+
+title: Detection Engine Configuration - TornadoAPI Guard
+description: Configuration guide for the TornadoAPI Guard Detection Engine including thresholds, timeouts, and environment variables
+keywords: detection engine configuration, security thresholds, tornado security config
+---
+
 # Detection Engine Configuration Guide
 
 This guide provides comprehensive documentation for configuring the TornadoAPI Guard Detection Engine to optimize security and performance for your specific needs.
@@ -277,24 +284,39 @@ except ValueError as e:
     print(f"Configuration error: {e}")
 ```
 
-## Environment Variables
+## Environment-driven configuration
 
-You can also configure the detection engine using environment variables:
+`SecurityConfig` is a plain Pydantic `BaseModel` and does not read environment variables automatically. If you want environment-driven configuration, build a small loader:
 
-```bash
-# Core settings
-TORNADOAPI_GUARD_ENABLE_PENETRATION_DETECTION=true
-TORNADOAPI_GUARD_AUTO_BAN_THRESHOLD=5
+```python
+import os
 
-# Detection engine
-TORNADOAPI_GUARD_DETECTION_COMPILER_TIMEOUT=2.0
-TORNADOAPI_GUARD_DETECTION_MAX_CONTENT_LENGTH=10000
-TORNADOAPI_GUARD_DETECTION_SEMANTIC_THRESHOLD=0.7
+from tornadoapi_guard import SecurityConfig
 
-# Performance monitoring
-TORNADOAPI_GUARD_DETECTION_ANOMALY_THRESHOLD=3.0
-TORNADOAPI_GUARD_DETECTION_SLOW_PATTERN_THRESHOLD=0.1
+
+def build_config() -> SecurityConfig:
+    return SecurityConfig(
+        enable_penetration_detection=os.getenv("GUARD_ENABLE_DETECTION", "true") == "true",
+        auto_ban_threshold=int(os.getenv("GUARD_AUTO_BAN_THRESHOLD", "5")),
+        detection_compiler_timeout=float(
+            os.getenv("GUARD_DETECTION_TIMEOUT", "2.0")
+        ),
+        detection_max_content_length=int(
+            os.getenv("GUARD_DETECTION_MAX_LEN", "10000")
+        ),
+        detection_semantic_threshold=float(
+            os.getenv("GUARD_DETECTION_SEMANTIC_THRESHOLD", "0.7")
+        ),
+        detection_anomaly_threshold=float(
+            os.getenv("GUARD_DETECTION_ANOMALY_THRESHOLD", "3.0")
+        ),
+        detection_slow_pattern_threshold=float(
+            os.getenv("GUARD_DETECTION_SLOW_THRESHOLD", "0.1")
+        ),
+    )
 ```
+
+For heavier configuration needs, wrap `SecurityConfig` with [pydantic-settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/).
 
 ## Monitoring Configuration Effectiveness
 

@@ -1,3 +1,10 @@
+---
+
+title: Detection Engine Components - TornadoAPI Guard
+description: Detailed reference for each component of the TornadoAPI Guard Detection Engine including PatternMatcher, Validator, and supporting utilities
+keywords: detection engine components, pattern matcher, validator, tornado security
+---
+
 # Detection Engine Components
 
 This document provides detailed information about each component of the TornadoAPI Guard Detection Engine, including their actual implementation, capabilities, and usage.

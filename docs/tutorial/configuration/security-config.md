@@ -1,180 +1,267 @@
 ---
 
 title: Security Configuration - TornadoAPI Guard
-description: Complete guide to TornadoAPI Guard's SecurityConfig model and configuration options
-keywords: security config, configuration, settings, environment variables
+description: Complete guide to TornadoAPI Guard's SecurityConfig model and every supported configuration field
+keywords: security config, configuration, settings, tornadoapi-guard
 ---
 
 Security Configuration
-=====================
+======================
 
-TornadoAPI Guard uses Pydantic models for configuration and data structures.
+TornadoAPI Guard configuration is provided by `SecurityConfig`, a Pydantic `BaseModel` re-exported from [guard-core](https://github.com/rennf93/guard-core). Every security feature — IP control, rate limiting, behavioral analysis, security headers, Redis, agent telemetry, and the detection engine — is driven by fields on this model.
 
 ___
 
 SecurityConfig
 --------------
 
-The main configuration model for TornadoAPI Guard middleware.
-
 ```python
-class SecurityConfig(BaseSettings):
-    """
-    Main configuration model for TornadoAPI Guard.
-    All settings can be configured via environment variables with TORNADOAPI_GUARD_ prefix.
-    """
+from tornadoapi_guard import SecurityConfig
+
+config = SecurityConfig(
+    rate_limit=100,
+    auto_ban_threshold=5,
+    enable_penetration_detection=True,
+)
 ```
+
+`SecurityConfig` is a plain Pydantic model. It does **not** read environment variables automatically — wire up your own loader (e.g. `os.getenv`, `pydantic-settings`, or your framework's config module) if you need env-driven configuration.
+
+___
 
 Core Security Settings
 ----------------------
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `enabled` | bool | True | Enable/disable the middleware |
-| `passive_mode` | bool | False | If True, only log without blocking |
+| `passive_mode` | bool | False | Log-only mode — detect without blocking |
+| `enable_ip_banning` | bool | True | Enable automatic and manual IP banning |
+| `enable_rate_limiting` | bool | True | Enable rate limiting |
 | `enable_penetration_detection` | bool | True | Enable penetration attempt detection |
-| `auto_ban_threshold` | int | 5 | Number of suspicious requests before auto-ban |
-| `auto_ban_duration` | int | 3600 | Auto-ban duration in seconds |
+| `auto_ban_threshold` | int | 10 | Number of suspicious requests before auto-ban |
+| `auto_ban_duration` | int | 3600 | Ban duration in seconds |
+| `enforce_https` | bool | False | Reject or redirect non-HTTPS requests |
+| `exclude_paths` | list[str] | `["/docs", "/redoc", "/openapi.json", "/openapi.yaml", "/favicon.ico", "/static"]` | Paths that bypass the security pipeline |
 
-Detection Engine Settings
--------------------------
-
-New configuration fields for the enhanced Detection Engine:
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `detection_compiler_timeout` | float | 2.0 | Timeout for pattern compilation and execution (seconds) |
-| `detection_max_content_length` | int | 10000 | Maximum content length to analyze |
-| `detection_preserve_attack_patterns` | bool | True | Preserve attack patterns during content truncation |
-| `detection_semantic_threshold` | float | 0.7 | Minimum threat score for semantic detection (0.0-1.0) |
-| `detection_anomaly_threshold` | float | 3.0 | Standard deviations to consider performance anomaly |
-| `detection_slow_pattern_threshold` | float | 0.1 | Execution time to consider pattern slow (seconds) |
-| `detection_monitor_history_size` | int | 1000 | Number of performance metrics to keep in history |
-| `detection_max_tracked_patterns` | int | 1000 | Maximum patterns to track for performance |
+___
 
 IP Management Settings
 ----------------------
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `trusted_ips` | list[str] | [] | List of always-allowed IP addresses |
-| `blocked_ips` | list[str] | [] | List of always-blocked IP addresses |
-| `blocked_countries` | list[str] | [] | List of blocked country codes |
-| `blocked_user_agents` | list[str] | [] | List of blocked user agent patterns |
-| `trusted_hosts` | list[str] | ["*"] | List of allowed host headers |
-| `real_ip_header` | str | None | Header containing real IP (e.g., 'X-Forwarded-For') |
-| `global_rate_limit` | str | "5000/hour" | Global rate limit for all requests |
+| `whitelist` | list[str] \| None | None | Always-allowed IP addresses and CIDR ranges |
+| `blacklist` | list[str] | `[]` | Always-blocked IP addresses and CIDR ranges |
+| `trusted_proxies` | list[str] | `[]` | Proxies trusted to supply `X-Forwarded-For` |
+| `trusted_proxy_depth` | int | 1 | Number of hops to trust in the proxy chain |
+| `trust_x_forwarded_proto` | bool | False | Trust `X-Forwarded-Proto` for HTTPS detection |
 
-Redis Settings
---------------
+___
 
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `use_redis` | bool | False | Enable Redis integration |
-| `redis_host` | str | "localhost" | Redis server hostname |
-| `redis_port` | int | 6379 | Redis server port |
-| `redis_password` | str | None | Redis password |
-| `redis_db` | int | 0 | Redis database number |
-| `redis_ssl` | bool | False | Use SSL for Redis connection |
-| `redis_pool_size` | int | 10 | Connection pool size |
-| `redis_ttl` | int | 86400 | Default TTL for Redis keys (seconds) |
-
-Agent Settings
---------------
+Rate Limiting Settings
+----------------------
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `enable_agent` | bool | False | Enable TornadoAPI Guard Agent integration |
-| `agent_api_key` | str | None | API key for agent authentication |
-| `agent_api_base_url` | str | "https://api.fastapiguard.com/v1/agent" | Agent API endpoint |
-| `agent_enable_events` | bool | True | Send events to agent |
-| `agent_enable_metrics` | bool | True | Send metrics to agent |
-| `agent_send_interval` | int | 60 | Metric sending interval (seconds) |
+| `rate_limit` | int | 10 | Maximum requests allowed per window |
+| `rate_limit_window` | int | 60 | Window length in seconds |
+| `endpoint_rate_limits` | dict[str, tuple[int, int]] | `{}` | Per-endpoint `{path: (requests, window)}` overrides (set by dynamic rules) |
+
+___
+
+Geographic Settings
+-------------------
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `geo_ip_handler` | GeoIPHandler \| None | None | Custom geolocation handler implementing `GeoIPHandler` protocol |
+| `whitelist_countries` | list[str] | `[]` | ISO country codes always allowed |
+| `blocked_countries` | list[str] | `[]` | ISO country codes always blocked |
+| `ipinfo_token` | str \| None | None | *(Deprecated)* IPInfo API token. Prefer `geo_ip_handler` |
+| `ipinfo_db_path` | Path \| None | `Path("data/ipinfo/country_asn.mmdb")` | *(Deprecated)* Path to IPInfo database |
+
+Setting `blocked_countries` or `whitelist_countries` without a `geo_ip_handler` (or a deprecated `ipinfo_token`) raises a validation error.
+
+___
 
 Cloud Provider Settings
 -----------------------
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `ipinfo_token` | str | None | IPInfo API token for geolocation |
-| `block_cloud_providers` | dict | {} | Cloud providers to block |
-| `cloud_provider_cache_ttl` | int | 86400 | Cache TTL for cloud provider data |
-| `cloud_ip_refresh_interval` | int | 3600 | Interval in seconds between cloud IP range refreshes (60-86400) |
+| `block_cloud_providers` | set[str] \| None | None | Set of `{"AWS", "GCP", "Azure"}` to block |
+| `cloud_ip_refresh_interval` | int | 3600 | Seconds between cloud IP range refreshes (60-86400) |
 
-Security Headers Settings
-------------------------
+Only `AWS`, `GCP`, and `Azure` are recognized. Unknown provider names are filtered out by the validator.
+
+___
+
+User Agent Settings
+-------------------
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `security_headers` | dict[str, Any] | See below | Security headers configuration |
+| `blocked_user_agents` | list[str] | `[]` | Substring patterns to block in the User-Agent header |
 
-Default security_headers configuration:
+___
+
+Detection Engine Settings
+-------------------------
+
+| Field | Type | Default | Range | Description |
+|-------|------|---------|-------|-------------|
+| `detection_compiler_timeout` | float | 2.0 | 0.1–10.0 | Pattern compilation/execution timeout (seconds) |
+| `detection_max_content_length` | int | 10000 | 1000–100000 | Maximum content length analyzed per request |
+| `detection_preserve_attack_patterns` | bool | True | — | Preserve known attack patterns during truncation |
+| `detection_semantic_threshold` | float | 0.7 | 0.0–1.0 | Minimum threat score for semantic detection |
+| `detection_anomaly_threshold` | float | 3.0 | 1.0–10.0 | Standard deviations from mean to flag anomaly |
+| `detection_slow_pattern_threshold` | float | 0.1 | 0.01–1.0 | Execution time to flag a pattern as slow (seconds) |
+| `detection_monitor_history_size` | int | 1000 | 100–10000 | Number of performance metrics kept in history |
+| `detection_max_tracked_patterns` | int | 1000 | 100–5000 | Maximum patterns tracked for performance stats |
+
+See the full [Detection Engine Configuration Guide](../security/detection-engine/configuration.md) for tuning details.
+
+___
+
+Redis Settings
+--------------
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `enable_redis` | bool | True | Enable Redis-backed distributed state |
+| `redis_url` | str \| None | `"redis://localhost:6379"` | Redis connection URL |
+| `redis_prefix` | str | `"guard_core:"` | Prefix for all Redis keys |
+
+___
+
+Agent Settings
+--------------
+
+Guard Agent is an optional telemetry and dynamic-rule SaaS platform.
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `enable_agent` | bool | False | Enable Guard Agent integration |
+| `agent_api_key` | str \| None | None | SaaS API key (required when `enable_agent=True`) |
+| `agent_endpoint` | str | `"https://api.fastapi-guard.com"` | SaaS endpoint URL |
+| `agent_project_id` | str \| None | None | Project ID for organizing telemetry |
+| `agent_buffer_size` | int | 100 | Events buffered before auto-flush |
+| `agent_flush_interval` | int | 30 | Seconds between automatic buffer flushes |
+| `agent_enable_events` | bool | True | Send security events to the SaaS platform |
+| `agent_enable_metrics` | bool | True | Send performance metrics to the SaaS platform |
+| `agent_timeout` | int | 30 | HTTP request timeout (seconds) |
+| `agent_retry_attempts` | int | 3 | Retry attempts for failed requests |
+| `enable_dynamic_rules` | bool | False | Accept dynamic rule updates from the SaaS platform |
+| `dynamic_rule_interval` | int | 300 | Seconds between dynamic rule polls |
+
+Setting `enable_agent=True` without `agent_api_key` raises a validation error. Setting `enable_dynamic_rules=True` without `enable_agent=True` also raises.
+
+Install the agent package separately: `pip install fastapi-guard-agent` (despite the name, it is framework-agnostic).
+
+___
+
+Emergency Mode
+--------------
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `emergency_mode` | bool | False | Lockdown — block all requests except those on `emergency_whitelist` |
+| `emergency_whitelist` | list[str] | `[]` | IPs allowed during emergency mode |
+
+Emergency mode is typically toggled at runtime through dynamic rules, but can also be set at construction for drills.
+
+___
+
+Security Headers Settings
+-------------------------
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `security_headers` | dict[str, Any] \| None | See below | Security headers configuration (see nested fields) |
+
+Default value:
 
 ```python
 {
     "enabled": True,
     "hsts": {
-        "max_age": 31536000,  # 1 year
+        "max_age": 31536000,
         "include_subdomains": True,
-        "preload": False
+        "preload": False,
     },
-    "csp": None,  # Content Security Policy directives
+    "csp": None,
     "frame_options": "SAMEORIGIN",
     "content_type_options": "nosniff",
     "xss_protection": "1; mode=block",
     "referrer_policy": "strict-origin-when-cross-origin",
     "permissions_policy": "geolocation=(), microphone=(), camera=()",
-    "custom": None  # Additional custom headers
+    "custom": None,
 }
 ```
 
-The following additional security headers are now included by default:
-
-- `X-Permitted-Cross-Domain-Policies: none`
-- `X-Download-Options: noopen`
-- `Cross-Origin-Embedder-Policy: require-corp`
-- `Cross-Origin-Opener-Policy: same-origin`
-- `Cross-Origin-Resource-Policy: same-origin`
-
-Security Headers Sub-fields
-----------------------------
+Sub-field reference:
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `enabled` | bool | True | Enable security headers |
-| `hsts.max_age` | int | 31536000 | HSTS max-age in seconds |
-| `hsts.include_subdomains` | bool | True | Include subdomains in HSTS |
-| `hsts.preload` | bool | False | Enable HSTS preload |
-| `csp` | dict[str, list[str]] | None | Content Security Policy directives |
-| `frame_options` | str | "SAMEORIGIN" | X-Frame-Options value (DENY, SAMEORIGIN) |
-| `content_type_options` | str | "nosniff" | X-Content-Type-Options value |
-| `xss_protection` | str | "1; mode=block" | X-XSS-Protection value |
-| `referrer_policy` | str | "strict-origin-when-cross-origin" | Referrer-Policy value |
-| `permissions_policy` | str | See default | Permissions-Policy value |
-| `custom` | dict[str, str] | None | Additional custom headers |
+| `enabled` | bool | True | Enable or disable all security headers |
+| `hsts.max_age` | int | 31536000 | `Strict-Transport-Security` max-age in seconds |
+| `hsts.include_subdomains` | bool | True | Include `includeSubDomains` in HSTS |
+| `hsts.preload` | bool | False | Include `preload` in HSTS |
+| `csp` | dict[str, list[str]] \| None | None | Content Security Policy directives |
+| `frame_options` | str | `"SAMEORIGIN"` | `X-Frame-Options` (`DENY` \| `SAMEORIGIN`) |
+| `content_type_options` | str | `"nosniff"` | `X-Content-Type-Options` |
+| `xss_protection` | str | `"1; mode=block"` | `X-XSS-Protection` |
+| `referrer_policy` | str | `"strict-origin-when-cross-origin"` | `Referrer-Policy` |
+| `permissions_policy` | str | `"geolocation=(), microphone=(), camera=()"` | `Permissions-Policy` |
+| `custom` | dict[str, str] \| None | None | Additional custom headers applied to every response |
+
+Headers are applied automatically by `SecurityHandler.prepare()` via `SecurityMiddleware.apply_pre_flight_headers()` — no extra wiring required.
+
+___
 
 CORS Settings
 -------------
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `cors_enabled` | bool | True | Enable CORS handling |
-| `cors_origins` | list[str] | ["*"] | Allowed origins |
-| `cors_methods` | list[str] | ["*"] | Allowed methods |
-| `cors_headers` | list[str] | ["*"] | Allowed headers |
-| `cors_credentials` | bool | False | Allow credentials |
-| `cors_max_age` | int | 600 | Preflight cache duration |
+| `enable_cors` | bool | False | Enable CORS response headers |
+| `cors_allow_origins` | list[str] | `["*"]` | Origins allowed in the `Access-Control-Allow-Origin` header |
+| `cors_allow_methods` | list[str] | `["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]` | Methods allowed |
+| `cors_allow_headers` | list[str] | `["*"]` | Headers allowed |
+| `cors_allow_credentials` | bool | False | Include `Access-Control-Allow-Credentials: true` |
+| `cors_expose_headers` | list[str] | `[]` | Headers exposed to the browser |
+| `cors_max_age` | int | 600 | `Access-Control-Max-Age` in seconds |
+
+See [CORS Configuration](cors.md) for how Tornado's handler lifecycle differs from ASGI frameworks when handling CORS.
+
+___
 
 Logging Settings
 ----------------
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `log_enabled` | bool | True | Enable request logging |
-| `log_level` | str | "INFO" | Logging level |
-| `custom_log_file` | str | None | Custom log file path |
-| `log_format` | Literal["text", "json"] | "text" | Log output format: "text" for plain text, "json" for structured JSON |
-| `mask_sensitive_data` | bool | True | Mask sensitive data in logs |
+| `custom_log_file` | str \| None | None | Path to a custom log file. `None` means stderr only |
+| `log_request_level` | str \| None | None | Log level for incoming requests (`INFO`, `DEBUG`, `WARNING`, `ERROR`, `CRITICAL`). `None` disables request logging |
+| `log_suspicious_level` | str \| None | `"WARNING"` | Log level for suspicious requests |
+| `log_format` | Literal["text", "json"] | `"text"` | Log output format |
+
+See [Logging Configuration](logging.md) for formatters, handlers, and custom filters.
+
+___
+
+Custom Hooks
+------------
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `custom_request_check` | async callable \| None | None | Additional per-request check. Signature: `async (GuardRequest) -> GuardResponse \| None` |
+| `custom_response_modifier` | async callable \| None | None | Mutate responses before they're sent. Signature: `async (GuardResponse) -> GuardResponse` |
+| `custom_error_responses` | dict[int, str] | `{}` | Custom body text for specific HTTP status codes |
+
+See [Adapters API](../../api/adapters.md) for a worked example using `TornadoGuardResponse` inside a `custom_request_check`.
+
+___
 
 Usage Example
 -------------
@@ -182,228 +269,93 @@ Usage Example
 ```python
 from tornadoapi_guard import SecurityConfig
 
-# Basic configuration
 config = SecurityConfig(
+    passive_mode=False,
     enable_penetration_detection=True,
     auto_ban_threshold=5,
-    detection_semantic_threshold=0.7
-)
-
-# Full configuration
-config = SecurityConfig(
-    # Core settings
-    enabled=True,
-    passive_mode=False,
-
-    # Detection engine
-    enable_penetration_detection=True,
-    detection_compiler_timeout=2.0,
-    detection_max_content_length=10000,
-    detection_preserve_attack_patterns=True,
-    detection_semantic_threshold=0.7,
-    detection_anomaly_threshold=3.0,
-    detection_slow_pattern_threshold=0.1,
-    detection_monitor_history_size=1000,
-    detection_max_tracked_patterns=1000,
-
-    # Security headers
+    auto_ban_duration=3600,
+    whitelist=["127.0.0.1", "10.0.0.0/8"],
+    blacklist=["192.168.100.0/24"],
+    trusted_proxies=["127.0.0.1", "10.0.0.0/8"],
+    trusted_proxy_depth=2,
+    rate_limit=100,
+    rate_limit_window=60,
+    block_cloud_providers={"AWS", "GCP", "Azure"},
+    blocked_user_agents=["badbot", "sqlmap"],
+    enable_redis=True,
+    redis_url="redis://localhost:6379",
+    redis_prefix="myapp:",
+    enable_cors=True,
+    cors_allow_origins=["https://example.com"],
+    cors_allow_credentials=True,
     security_headers={
         "enabled": True,
-        "hsts": {
-            "max_age": 31536000,  # 1 year
-            "include_subdomains": True,
-            "preload": False
-        },
+        "hsts": {"max_age": 31536000, "include_subdomains": True, "preload": False},
+        "frame_options": "DENY",
         "csp": {
             "default-src": ["'self'"],
-            "script-src": ["'self'", "https://cdn.example.com"],
-            "style-src": ["'self'", "'unsafe-inline'"],
-            "img-src": ["'self'", "data:", "https:"],
-            "connect-src": ["'self'", "https://api.example.com"],
-            "frame-ancestors": ["'none'"],
-            "base-uri": ["'self'"],
-            "form-action": ["'self'"]
+            "script-src": ["'self'"],
         },
-        "frame_options": "DENY",
-        "content_type_options": "nosniff",
-        "xss_protection": "1; mode=block",
-        "referrer_policy": "no-referrer",
-        "permissions_policy": "geolocation=(), microphone=(), camera=()",
-        "custom": {
-            "X-Custom-Header": "CustomValue"
-        }
     },
-
-    # Redis
-    use_redis=True,
-    redis_host="localhost",
-    redis_port=6379,
-
-    # Agent
-    enable_agent=True,
-    agent_api_key="your-api-key",
-
-    # Logging
+    exclude_paths=["/health", "/metrics"],
     custom_log_file="security.log",
-    log_level="WARNING",
+    log_request_level="INFO",
     log_format="json",
-
-    # Cloud provider refresh
-    cloud_ip_refresh_interval=1800,
 )
 ```
+
+___
+
+Validation
+----------
+
+`SecurityConfig` enforces several validators at construction time:
+
+- `whitelist` and `blacklist` entries must be valid IPs or CIDR ranges.
+- `trusted_proxies` entries must be valid IPs or CIDR ranges.
+- `trusted_proxy_depth` must be at least 1.
+- `block_cloud_providers` is filtered to the known set `{"AWS", "GCP", "Azure"}`.
+- `blocked_countries` or `whitelist_countries` requires a `geo_ip_handler` (or a deprecated `ipinfo_token`).
+- `enable_agent=True` requires `agent_api_key`.
+- `enable_dynamic_rules=True` requires `enable_agent=True`.
+- `detection_*` fields are clamped to their documented ranges.
+
+Validation errors raise `pydantic.ValidationError` at construction time.
+
+___
 
 Environment Variables
 ---------------------
 
-All settings can be configured using environment variables with the `TORNADOAPI_GUARD_` prefix:
-
-```bash
-export TORNADOAPI_GUARD_ENABLED=true
-export TORNADOAPI_GUARD_DETECTION_SEMANTIC_THRESHOLD=0.8
-export TORNADOAPI_GUARD_REDIS_HOST=redis.example.com
-export TORNADOAPI_GUARD_AGENT_API_KEY=your-api-key
-```
-
-___
-
-Other Models
-------------
-
-IPInfo
-------
+`SecurityConfig` itself does not read environment variables — guard-core does not ship a `BaseSettings` subclass. Users who want env-driven configuration can wrap it:
 
 ```python
-class IPInfo(BaseModel):
-    """IP address information from geolocation service"""
-    ip: str
-    country: str | None = None
-    region: str | None = None
-    city: str | None = None
-    is_cloud: bool = False
-    cloud_provider: str | None = None
-```
+import os
 
-RateLimitStatus
-----------------
+from tornadoapi_guard import SecurityConfig
 
-```python
-class RateLimitStatus(BaseModel):
-    """Rate limit status for a client"""
-    allowed: bool
-    current_requests: int
-    limit: int
-    window_seconds: int
-    reset_time: datetime
-```
 
-ThreatDetectionResult
----------------------
-
-```python
-class ThreatDetectionResult(TypedDict):
-    """Result from detection engine analysis"""
-    is_threat: bool
-    threat_score: float
-    threats: list[dict[str, Any]]
-    context: str
-    original_length: int
-    processed_length: int
-    execution_time: float
-    detection_method: str
-    timeouts: list[str]
-    correlation_id: str | None
-```
-
-BehaviorProfile
-----------------
-
-```python
-class BehaviorProfile(BaseModel):
-    """Client behavior profile for analysis"""
-    ip_address: str
-    request_count: int
-    suspicious_count: int
-    last_seen: datetime
-    user_agents: list[str]
-    paths_accessed: list[str]
-    methods_used: list[str]
-    risk_score: float
-```
-
-___
-
-Configuration Validation
-------------------------
-
-The SecurityConfig model validates settings on initialization:
-
-```python
-# Validation examples
-try:
-    config = SecurityConfig(
-        detection_compiler_timeout=0.05  # Too low
+def load_config() -> SecurityConfig:
+    return SecurityConfig(
+        enable_redis=bool(os.getenv("REDIS_URL")),
+        redis_url=os.getenv("REDIS_URL", "redis://localhost:6379"),
+        redis_prefix=os.getenv("REDIS_PREFIX", "tornadoapi_guard:"),
+        enable_agent=os.getenv("GUARD_AGENT_ENABLED") == "true",
+        agent_api_key=os.getenv("GUARD_AGENT_API_KEY"),
+        auto_ban_threshold=int(os.getenv("GUARD_AUTO_BAN_THRESHOLD", "10")),
     )
-except ValidationError as e:
-    print(f"Configuration error: {e}")
-
-# Valid ranges
-config = SecurityConfig(
-    detection_compiler_timeout=2.0,      # 0.1 - 30.0
-    detection_semantic_threshold=0.7,    # 0.0 - 1.0
-    detection_anomaly_threshold=3.0,     # 1.0 - 10.0
-    auto_ban_threshold=5,                # 1 - 1000
-    auto_ban_duration=3600,              # 60 - 86400
-)
 ```
 
-___
-
-Model Serialization
--------------------
-
-All models support standard Pydantic serialization:
-
-```python
-# Export configuration
-config_dict = config.dict(exclude_unset=True)
-config_json = config.json(indent=2)
-
-# Import configuration
-config = SecurityConfig.parse_obj(config_dict)
-config = SecurityConfig.parse_raw(config_json)
-
-# Schema generation
-schema = SecurityConfig.schema()
-```
-
-___
-
-Custom Validators
------------------
-
-The models include custom validators for complex fields:
-
-```python
-@validator("detection_semantic_threshold")
-def validate_threshold(cls, v):
-    if not 0.0 <= v <= 1.0:
-        raise ValueError("Threshold must be between 0.0 and 1.0")
-    return v
-
-@validator("redis_host")
-def validate_redis_host(cls, v, values):
-    if values.get("use_redis") and not v:
-        raise ValueError("Redis host required when use_redis is True")
-    return v
-```
+Or use [pydantic-settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/) to build a settings wrapper that composes `SecurityConfig`.
 
 ___
 
 See Also
 --------
 
-- [Security Middleware](../../api/security-middleware.md) - Using SecurityConfig with middleware
-- [Detection Engine Configuration](../security/detection-engine/configuration.md) - Detailed configuration guide
-- [Logging Configuration](logging.md) - Logging configuration
-- [CORS Configuration](cors.md) - CORS configuration
+- [SecurityMiddleware](../../api/security-middleware.md) — how to register the config with a Tornado Application
+- [SecurityHandler](../../api/security-handler.md) — base handler that runs the guard pipeline
+- [Adapters API](../../api/adapters.md) — custom request/response hook examples
+- [Detection Engine Configuration](../security/detection-engine/configuration.md) — detection engine tuning
+- [Logging Configuration](logging.md) — log formatting and handlers
+- [CORS Configuration](cors.md) — CORS handling in Tornado

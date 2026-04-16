@@ -1,3 +1,10 @@
+---
+
+title: Detection Engine Performance Tuning - TornadoAPI Guard
+description: Performance tuning guide for the TornadoAPI Guard Detection Engine including benchmark methodology and optimization techniques
+keywords: detection engine performance, tuning, benchmarks, tornado security
+---
+
 # Detection Engine Performance Tuning Guide
 
 This guide provides comprehensive strategies for optimizing the TornadoAPI Guard Detection Engine for maximum performance while maintaining security effectiveness.

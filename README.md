@@ -65,10 +65,49 @@ pip install tornadoapi-guard
 
 ___
 
-Status
-------
+Quick Start
+-----------
 
-Work in progress. The adapter layer is being built to bring guard-core's full security pipeline to Tornado applications.
+```python
+import asyncio
+import tornado.web
+from tornadoapi_guard import SecurityConfig, SecurityHandler, SecurityMiddleware
+
+config = SecurityConfig(
+    rate_limit=100,
+    auto_ban_threshold=5,
+    enable_penetration_detection=True,
+)
+middleware = SecurityMiddleware(config=config)
+
+
+class HelloHandler(SecurityHandler):
+    async def get(self) -> None:
+        self.write({"message": "hello"})
+
+
+async def main() -> None:
+    await middleware.initialize()
+    app = tornado.web.Application(
+        [(r"/", HelloHandler)],
+        security_middleware=middleware,
+    )
+    app.listen(8000)
+    await asyncio.Event().wait()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+See [`examples/simple_app/main.py`](examples/simple_app/main.py) for a full reference application exercising every decorator and security feature.
+
+___
+
+Documentation
+-------------
+
+Full documentation is published at <https://rennf93.github.io/tornadoapi-guard/latest/>, or build locally with `make serve-docs`.
 
 ___
 
