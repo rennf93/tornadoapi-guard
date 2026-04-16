@@ -267,6 +267,7 @@ per_rule_ignores = { "DEP001" = [
     "guard_agent",
 ], "DEP002" = [
     "guard-core",
+    "tornado",
     "httpx",
     "bandit",
     "deptry",
