@@ -1,11 +1,3 @@
-- name: "area: middleware"
-  color: "0E8A16"
-  description: "Touches tornadoapi_guard/middleware.py (Tornado middleware adapter)"
-
-- name: "area: handler"
-  color: "0E8A16"
-  description: "Touches tornadoapi_guard/handler.py (RequestHandler integration)"
-
 - name: "area: adapters"
   color: "0E8A16"
   description: "Touches tornadoapi_guard/adapters.py (request/response protocol implementations)"

@@ -1,27 +1,12 @@
-"area: middleware":
-  - changed-files:
-      - any-glob-to-any-file:
-          - tornadoapi_guard/middleware.py
-          - tests/test_middleware.py
-          - tests/test_middleware_unit.py
-
-"area: handler":
-  - changed-files:
-      - any-glob-to-any-file:
-          - tornadoapi_guard/handler.py
-          - tests/test_handler.py
-
 "area: adapters":
   - changed-files:
       - any-glob-to-any-file:
           - tornadoapi_guard/adapters.py
-          - tests/test_adapters.py
 
 "area: integrations":
   - changed-files:
       - any-glob-to-any-file:
           - tornadoapi_guard/__init__.py
-          - tests/test_reexports.py
 
 tests:
   - changed-files:
