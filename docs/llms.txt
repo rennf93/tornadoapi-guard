@@ -146,8 +146,16 @@ Complete API documentation for all classes and functions:
 
 ## Installation
 
+Primary choice is `uv`, second is `poetry`, `pip` is the fallback.
+
 ```bash
-# Basic installation
+# uv (recommended)
+uv add tornadoapi-guard
+
+# poetry
+poetry add tornadoapi-guard
+
+# pip
 pip install tornadoapi-guard
 ```
 

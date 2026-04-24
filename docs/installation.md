@@ -8,11 +8,25 @@ keywords: tornadoapi guard installation, python security middleware, tornado sec
 Installation
 ============
 
-Install `tornadoapi-guard` using pip:
+Install `tornadoapi-guard` with **uv** (recommended), **poetry**, or **pip**:
 
-```bash
-pip install tornadoapi-guard
-```
+=== "uv"
+
+    ```bash
+    uv add tornadoapi-guard
+    ```
+
+=== "poetry"
+
+    ```bash
+    poetry add tornadoapi-guard
+    ```
+
+=== "pip"
+
+    ```bash
+    pip install tornadoapi-guard
+    ```
 
 **Note**: Ensure you have Python 3.10 or higher installed.
 

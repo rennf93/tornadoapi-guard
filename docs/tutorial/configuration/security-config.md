@@ -156,7 +156,25 @@ Guard Agent is an optional telemetry and dynamic-rule SaaS platform.
 
 Setting `enable_agent=True` without `agent_api_key` raises a validation error. Setting `enable_dynamic_rules=True` without `enable_agent=True` also raises.
 
-Install the agent package separately: `pip install guard-agent` (framework-agnostic; `pip install fastapi-guard-agent` still works via a legacy meta-package).
+Install the agent package separately (framework-agnostic; the legacy `fastapi-guard-agent` meta-package still works):
+
+=== "uv"
+
+    ```bash
+    uv add guard-agent
+    ```
+
+=== "poetry"
+
+    ```bash
+    poetry add guard-agent
+    ```
+
+=== "pip"
+
+    ```bash
+    pip install guard-agent
+    ```
 
 ___
 
