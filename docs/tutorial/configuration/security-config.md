@@ -143,7 +143,7 @@ Guard Agent is an optional telemetry and dynamic-rule SaaS platform.
 |-------|------|---------|-------------|
 | `enable_agent` | bool | False | Enable Guard Agent integration |
 | `agent_api_key` | str \| None | None | SaaS API key (required when `enable_agent=True`) |
-| `agent_endpoint` | str | `"https://api.fastapi-guard.com"` | SaaS endpoint URL |
+| `agent_endpoint` | str | `"https://api.guard-core.com"` | SaaS endpoint URL |
 | `agent_project_id` | str \| None | None | Project ID for organizing telemetry |
 | `agent_buffer_size` | int | 100 | Events buffered before auto-flush |
 | `agent_flush_interval` | int | 30 | Seconds between automatic buffer flushes |
@@ -156,7 +156,7 @@ Guard Agent is an optional telemetry and dynamic-rule SaaS platform.
 
 Setting `enable_agent=True` without `agent_api_key` raises a validation error. Setting `enable_dynamic_rules=True` without `enable_agent=True` also raises.
 
-Install the agent package separately: `pip install fastapi-guard-agent` (despite the name, it is framework-agnostic).
+Install the agent package separately: `pip install guard-agent` (framework-agnostic; `pip install fastapi-guard-agent` still works via a legacy meta-package).
 
 ___
 
