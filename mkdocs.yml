@@ -36,8 +36,8 @@ theme:
     - toc.follow
   icon:
     repo: fontawesome/brands/github
-  logo: assets/logo.svg
-  favicon: assets/favicon.png
+  logo: assets/guard_core_logo.svg
+  favicon: assets/guard_core_favicon.png
 
 nav:
   - Home: index.md
@@ -164,7 +164,7 @@ extra:
     - property: og:description
       content: Comprehensive security library for Tornado applications providing IP control, request logging, and penetration detection
     - property: og:image
-      content: https://rennf93.github.io/tornadoapi-guard/assets/big_logo.svg
+      content: https://rennf93.github.io/tornadoapi-guard/latest/assets/tornadoapi_guard_legend.svg
     - name: keywords
       content: tornado, security, middleware, python, ip control, rate limiting, penetration detection
 

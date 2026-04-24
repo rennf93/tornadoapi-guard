@@ -8,7 +8,7 @@ keywords: tornado, security, middleware, python, ip control, penetration detecti
 TornadoAPI Guard
 ================
 
-![TornadoAPI Guard Logo](assets/big_logo.svg)
+![TornadoAPI Guard Logo](assets/tornadoapi_guard_legend.svg)
 
 [![PyPI version](https://badge.fury.io/py/tornadoapi-guard.svg?cache=none&icon=si%3Apython&icon_color=%23008cb4)](https://badge.fury.io/py/tornadoapi-guard)
 [![Release](https://github.com/rennf93/tornadoapi-guard/actions/workflows/release.yml/badge.svg)](https://github.com/rennf93/tornadoapi-guard/actions/workflows/release.yml)

@@ -80,11 +80,6 @@ class SecurityMiddleware:
 
         self._guard_response_factory = TornadoResponseFactory()
 
-        self.event_bus = SecurityEventBus(
-            self.agent_handler, self.config, self.geo_ip_handler
-        )
-        self.metrics_collector = MetricsCollector(self.agent_handler, self.config)
-
         self.handler_initializer = HandlerInitializer(
             config=self.config,
             redis_handler=self.redis_handler,
@@ -93,6 +88,27 @@ class SecurityMiddleware:
             rate_limit_handler=self.rate_limit_handler,
             guard_decorator=self.guard_decorator,
         )
+
+        routing_context = RoutingContext(
+            config=self.config,
+            logger=self.logger,
+            guard_decorator=self.guard_decorator,
+        )
+        self.route_resolver = RouteConfigResolver(routing_context)
+
+        self._build_event_bus_and_contexts()
+
+    def _build_event_bus_and_contexts(self) -> None:
+        if self.handler_initializer.composite_handler is not None:
+            self.event_bus = self.handler_initializer.build_event_bus(
+                geo_ip_handler=self.geo_ip_handler
+            )
+            self.metrics_collector = self.handler_initializer.build_metrics_collector()
+        else:
+            self.event_bus = SecurityEventBus(
+                self.agent_handler, self.config, self.geo_ip_handler
+            )
+            self.metrics_collector = MetricsCollector(self.agent_handler, self.config)
 
         response_context = ResponseContext(
             config=self.config,
@@ -103,13 +119,6 @@ class SecurityMiddleware:
             response_factory=self._guard_response_factory,
         )
         self.response_factory = ErrorResponseFactory(response_context)
-
-        routing_context = RoutingContext(
-            config=self.config,
-            logger=self.logger,
-            guard_decorator=self.guard_decorator,
-        )
-        self.route_resolver = RouteConfigResolver(routing_context)
 
         validation_context = ValidationContext(
             config=self.config,
@@ -401,3 +410,6 @@ class SecurityMiddleware:
         await self.handler_initializer.initialize_redis_handlers()
 
         await self.handler_initializer.initialize_agent_integrations()
+
+        if self.handler_initializer.composite_handler is not None:
+            self._build_event_bus_and_contexts()
