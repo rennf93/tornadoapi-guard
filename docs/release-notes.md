@@ -10,6 +10,28 @@ Release Notes
 
 ___
 
+v1.1.0 (2026-04-25)
+-------------------
+
+Integration fixes for OTel + enrichment pipeline (v1.1.0)
+---------------------------------------------------------
+
+### Fixed
+
+- `SecurityMiddleware.initialize()` is now invoked on the first request via a `_ensure_initialized()` asyncio-lock guard inside `run_pre_processing()`. Previously the method existed but was never called, so `HandlerInitializer.initialize_agent_integrations()` never ran and the composite handler stayed `None`. Without this fix, no OTel span or Logfire log was ever emitted regardless of config.
+- After composite construction, `self.agent_handler` is rebound from the bare `guard-agent` client to the composite. Downstream callers that receive `middleware.agent_handler` (most notably `guard_core.utils.extract_client_ip → send_agent_event`) now route through the composite, so enrichment and OTel see every event.
+- `BehavioralContext` now receives `handler_initializer.behavior_tracker`, matching the guard-core 1.2.1 wiring. This closes the architectural gap so `guard.behavior.recent_event_count` populates end-to-end when `enable_enrichment=True`.
+
+### Requires
+
+- `guard-core>=1.2.1` for the matching OTLP endpoint normalization and `BehaviorTracker` wiring fixes. Install the latest with `uv add tornadoapi-guard guard-core` or `pip install -U tornadoapi-guard guard-core`.
+
+### Compat notes
+
+- No public API changes. `SecurityMiddleware.__init__` signature unchanged.
+
+___
+
 v1.0.0 (2026-04-24)
 -------------------
 

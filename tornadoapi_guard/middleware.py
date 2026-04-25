@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import time
 from typing import TYPE_CHECKING
 
@@ -98,6 +99,21 @@ class SecurityMiddleware:
 
         self._build_event_bus_and_contexts()
 
+        self._initialized = False
+        self._init_lock = asyncio.Lock()
+
+    def _is_initialized(self) -> bool:
+        return self._initialized
+
+    async def _ensure_initialized(self) -> None:
+        if self._is_initialized():
+            return
+        async with self._init_lock:
+            if self._is_initialized():
+                return
+            await self.initialize()
+            self._initialized = True
+
     def _build_event_bus_and_contexts(self) -> None:
         if self.handler_initializer.composite_handler is not None:
             self.event_bus = self.handler_initializer.build_event_bus(
@@ -132,6 +148,7 @@ class SecurityMiddleware:
             logger=self.logger,
             event_bus=self.event_bus,
             guard_decorator=self.guard_decorator,
+            behavior_tracker=self.handler_initializer.behavior_tracker,
         )
         self.behavioral_processor = BehavioralProcessor(behavioral_context)
 
@@ -298,11 +315,11 @@ class SecurityMiddleware:
         return False
 
     async def run_pre_processing(self, handler: RequestHandler) -> GuardResponse | None:
+        await self._ensure_initialized()
+
         guard_request = TornadoGuardRequest(handler)
         self._populate_guard_state(guard_request, handler)
 
-        if not self.security_pipeline:
-            self._build_security_pipeline()
         assert self.security_pipeline is not None
 
         client_ip = await extract_client_ip(
@@ -412,4 +429,5 @@ class SecurityMiddleware:
         await self.handler_initializer.initialize_agent_integrations()
 
         if self.handler_initializer.composite_handler is not None:
+            self.agent_handler = self.handler_initializer.composite_handler
             self._build_event_bus_and_contexts()
