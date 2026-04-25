@@ -105,7 +105,7 @@ config = SecurityConfig(
     otel_exporter_endpoint="http://otel-collector.internal:4318",
     otel_resource_attributes={
         "deployment.environment": "prod",
-        "service.version": "1.2.0",
+        "service.version": "1.0.0",
     },
 )
 

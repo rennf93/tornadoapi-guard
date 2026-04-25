@@ -3,10 +3,10 @@ Release Notes
 
 ___
 
-v1.2.0 (2026-04-25)
+v1.0.0 (2026-04-25)
 -------------------
 
-guard-core 2.0.0 protocol alignment (v1.2.0)
+guard-core 2.0.0 protocol alignment (v1.0.0)
 --------------------------------------------
 
 ### Changed
@@ -23,10 +23,10 @@ guard-core 2.0.0 protocol alignment (v1.2.0)
 
 ___
 
-v1.1.0 (2026-04-25)
+v1.0.0 (2026-04-25)
 -------------------
 
-Integration fixes for OTel + enrichment pipeline (v1.1.0)
+Integration fixes for OTel + enrichment pipeline (v1.0.0)
 ---------------------------------------------------------
 
 ### Fixed
