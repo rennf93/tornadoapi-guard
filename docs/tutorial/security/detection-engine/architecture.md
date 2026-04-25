@@ -260,7 +260,9 @@ flowchart LR
     style PL fill:#fff9c4,stroke:#f57f17,stroke-width:2px
 ```
 
-### Detection Result Structure
+### Pattern Engine Result Structure (`SusPatternsManager.detect()`)
+
+The internal pattern engine returns this dict shape from `SusPatternsManager.detect()`. The pipeline-level `detect_penetration_attempt()` wraps it and returns a `DetectionResult` dataclass (`is_threat`, `trigger_info`, `threat_categories`, `threat_scores`) — see the [Utilities API reference](../../../api/utilities.md). Most application code consumes the outer `DetectionResult`; the dict below is for code that calls the engine directly.
 
 ```python
 {
@@ -271,6 +273,7 @@ flowchart LR
             "type": "regex",        # or "semantic"
             "pattern": str,         # For regex matches
             "score": float,         # For semantic matches
+            "category": str,        # Detection category (xss, sqli, custom, ...)
             "execution_time": float # Pattern execution time
         }
     ],
