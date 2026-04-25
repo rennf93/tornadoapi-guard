@@ -128,7 +128,9 @@ detect_penetration_attempt
 ```python
 async def detect_penetration_attempt(
     request: GuardRequest,
-) -> tuple[bool, str]
+    config: SecurityConfig | None = None,
+    route_config: RouteConfig | None = None,
+) -> DetectionResult
 ```
 
 Detect potential penetration attempts in the request using the enhanced Detection Engine.
@@ -138,14 +140,19 @@ This function analyzes various parts of the request (query params, body, path, h
 Parameters:
 
 - `request`: A `GuardRequest` instance. In a Tornado handler, wrap the handler with `TornadoGuardRequest(self)` before calling.
+- `config`: Optional `SecurityConfig` used to resolve global detection-exclusion settings (excluded query params, body fields, headers, and enabled threat categories). When omitted, no global exclusions are applied.
+- `route_config`: Optional `RouteConfig` (from a `@SecurityDecorator` on the handler) whose detection-exclusion settings take precedence over `config`. When omitted, only `config` is consulted.
 
-Returns a tuple where:
+Returns a `DetectionResult` dataclass (`guard_core.detection_result.DetectionResult`) with the following fields:
 
-- First element is a boolean: `True` if a potential attack is detected, `False` otherwise
-- Second element is a string with details about what triggered the detection, or empty string if no attack detected
+- `is_threat` (`bool`): `True` if a potential attack was detected, `False` otherwise.
+- `trigger_info` (`str`): Human-readable details about what triggered the detection, or an empty string when no attack was detected.
+- `threat_categories` (`list[str]`): Threat categories matched by the detection engine (for example `"sql_injection"`, `"xss"`, `"path_traversal"`). Empty when `is_threat` is `False`.
+- `threat_scores` (`dict[str, float]`): Per-category confidence scores in the range `0.0`-`1.0`. Empty when `is_threat` is `False`.
 
 The Detection Engine provides:
-- Timeout-protected pattern matching (configured via `detection_compiler_timeout` in SecurityConfig)
+
+- Timeout-protected pattern matching (configured via `detection_compiler_timeout` in `SecurityConfig`)
 - Intelligent content preprocessing that preserves attack patterns
 - Semantic analysis for obfuscated attacks (when enabled)
 - Performance monitoring for pattern effectiveness
@@ -161,9 +168,13 @@ from tornadoapi_guard.adapters import TornadoGuardRequest
 class SubmitHandler(SecurityHandler):
     async def post(self) -> None:
         guard_request = TornadoGuardRequest(self)
-        is_suspicious, trigger_info = await detect_penetration_attempt(guard_request)
-        if is_suspicious:
-            logger.warning(f"Attack detected: {trigger_info}")
+        result = await detect_penetration_attempt(guard_request)
+        if result.is_threat:
+            logger.warning(
+                "Attack detected: %s (categories=%s)",
+                result.trigger_info,
+                result.threat_categories,
+            )
             self.write({"error": "Suspicious activity detected"})
             return
         self.write({"success": True})
@@ -172,9 +183,14 @@ class SubmitHandler(SecurityHandler):
 class CriticalHandler(SecurityHandler):
     async def post(self) -> None:
         guard_request = TornadoGuardRequest(self)
-        is_suspicious, trigger_info = await detect_penetration_attempt(guard_request)
-        if is_suspicious:
-            self.write({"error": "Security check failed"})
+        result = await detect_penetration_attempt(guard_request)
+        if result.is_threat:
+            self.write(
+                {
+                    "error": "Security check failed",
+                    "categories": result.threat_categories,
+                }
+            )
             return
         self.write({"success": True})
 ```
@@ -227,5 +243,7 @@ await log_activity(
 )
 
 # Check for penetration attempts
-is_suspicious, trigger_info = await detect_penetration_attempt(request)
+result = await detect_penetration_attempt(request)
+if result.is_threat:
+    print(result.trigger_info, result.threat_categories)
 ```
