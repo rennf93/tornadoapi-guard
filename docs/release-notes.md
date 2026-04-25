@@ -10,6 +10,26 @@ Release Notes
 
 ___
 
+v1.2.0 (2026-04-25)
+-------------------
+
+guard-core 2.0.0 protocol alignment (v1.2.0)
+--------------------------------------------
+
+### Changed
+
+- `SecurityMiddleware.suspicious_request_counts` is now `dict[str, dict[str, int]]` to match the per-category counter shape introduced in guard-core 2.0.0. The middleware annotation is the only call site touched in the adapter; behaviour is delegated to guard-core which now stores counts grouped by detection category instead of a flat per-IP integer.
+
+### Requires
+
+- `guard-core>=2.0.0`. Adapter middleware updated to match the new `suspicious_request_counts: dict[str, dict[str, int]]` protocol shape. tornadoapi-guard does not call `detect_penetration_attempt` / `detect_penetration_patterns` directly so the new `DetectionResult` return type does not require code changes here. User code that didn't reach into the protocol internals is unaffected.
+
+### Compat notes
+
+- No public API changes on `SecurityMiddleware`. Users that read `middleware.suspicious_request_counts` directly will see the new nested mapping shape and should update their introspection accordingly.
+
+___
+
 v1.1.0 (2026-04-25)
 -------------------
 
