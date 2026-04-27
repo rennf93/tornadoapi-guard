@@ -122,3 +122,85 @@ async def test_normal_request_carries_cors_headers(
         assert response.headers.get("Access-Control-Allow-Credentials") == "true"
     finally:
         client.close()
+
+
+@pytest.fixture
+async def cors_server_with_passthrough() -> AsyncGenerator[
+    tuple[int, SecurityMiddleware], None
+]:
+    config = SecurityConfig(
+        enable_cors=True,
+        cors_allow_origins=["https://app.example.com"],
+        cors_allow_methods=["GET", "POST"],
+        cors_allow_headers=["X-Custom"],
+        cors_allow_credentials=True,
+        cors_max_age=600,
+        exclude_paths=["/health"],
+        trusted_proxies=["127.0.0.1"],
+        enable_redis=False,
+    )
+    middleware = SecurityMiddleware(config=config)
+
+    class _HealthHandler(SecurityHandler):
+        def get(self) -> None:
+            self.write({"status": "ok"})
+
+    app = tornado.web.Application(
+        [(r"/health", _HealthHandler)],
+        security_middleware=middleware,
+    )
+    await middleware.initialize()
+    sockets = tornado.netutil.bind_sockets(0, "127.0.0.1")
+    server = tornado.httpserver.HTTPServer(app)
+    server.add_sockets(sockets)
+    port: int = sockets[0].getsockname()[1]
+    try:
+        yield port, middleware
+    finally:
+        server.stop()
+        await middleware.reset()
+
+
+async def test_preflight_to_passthrough_path_returns_cors_response(
+    cors_server_with_passthrough: tuple[int, SecurityMiddleware],
+) -> None:
+    port, _ = cors_server_with_passthrough
+    client = AsyncHTTPClient()
+    try:
+        response = await client.fetch(
+            f"http://127.0.0.1:{port}/health",
+            method="OPTIONS",
+            allow_nonstandard_methods=True,
+            headers={
+                "Origin": "https://app.example.com",
+                "Access-Control-Request-Method": "GET",
+            },
+        )
+        assert response.code == 200
+        assert (
+            response.headers.get("Access-Control-Allow-Origin")
+            == "https://app.example.com"
+        )
+    finally:
+        client.close()
+
+
+async def test_normal_request_to_passthrough_path_carries_cors_headers(
+    cors_server_with_passthrough: tuple[int, SecurityMiddleware],
+) -> None:
+    port, _ = cors_server_with_passthrough
+    client = AsyncHTTPClient()
+    try:
+        response = await client.fetch(
+            f"http://127.0.0.1:{port}/health",
+            method="GET",
+            headers={"Origin": "https://app.example.com"},
+        )
+        assert response.code == 200
+        assert (
+            response.headers.get("Access-Control-Allow-Origin")
+            == "https://app.example.com"
+        )
+        assert response.headers.get("Access-Control-Allow-Credentials") == "true"
+    finally:
+        client.close()
