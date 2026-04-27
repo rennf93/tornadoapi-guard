@@ -3,6 +3,13 @@ Release Notes
 
 ___
 
+Unreleased
+----------
+
+- Pipeline-first CORS handling. `SecurityHandler.prepare()` runs the security pipeline before any CORS short-circuit. Preflight handling moved to `guard_core.sync.handlers.cors_handler.CorsHandler` so banned IPs and rate-limited clients can no longer preflight freely.
+
+___
+
 v1.0.0 (2026-04-25)
 -------------------
 

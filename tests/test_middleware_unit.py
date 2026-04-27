@@ -2,13 +2,16 @@ from __future__ import annotations
 
 from collections.abc import AsyncGenerator
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, MagicMock
+from typing import cast
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+import tornado.httputil
 from guard_core.decorators.base import RouteConfig
 from guard_core.handlers.cloud_handler import cloud_handler
 from guard_core.handlers.security_headers_handler import security_headers_manager
 from guard_core.models import SecurityConfig
+from tornado.web import RequestHandler
 
 from tornadoapi_guard import SecurityMiddleware
 from tornadoapi_guard.adapters import TornadoGuardRequest, get_guard_state
@@ -48,7 +51,7 @@ def _make_handler(
     settings: dict[str, object] | None = None,
     endpoint_attr: str = "get",
     endpoint_value: object | None = None,
-) -> _FakeHandler:
+) -> RequestHandler:
     from tornado.httputil import HTTPHeaders
 
     http_headers = HTTPHeaders()
@@ -69,7 +72,7 @@ def _make_handler(
     handler = _FakeHandler(request=request, application=application)
     if endpoint_value is not None:
         setattr(handler, endpoint_attr, endpoint_value)
-    return handler
+    return cast(RequestHandler, handler)
 
 
 @pytest.fixture
@@ -359,9 +362,10 @@ async def test_run_pre_processing_lazy_builds_pipeline() -> None:
         enable_penetration_detection=False,
     )
     middleware = SecurityMiddleware(config=config)
-    assert middleware.security_pipeline is None
+    pre_pipeline = middleware.security_pipeline
     handler = _make_handler(remote_ip="")
     await middleware.run_pre_processing(handler)
+    assert pre_pipeline is None
     assert middleware.security_pipeline is not None
     await middleware.reset()
 
@@ -392,7 +396,6 @@ async def test_run_pre_processing_triggers_usage_rules(
 ) -> None:
     from guard_core.handlers.behavior_handler import BehaviorRule
 
-    simple_middleware.behavioral_processor.process_usage_rules = AsyncMock()
     decorator = MagicMock()
     decorator.get_route_config = MagicMock()
     route_config = RouteConfig()
@@ -402,8 +405,11 @@ async def test_run_pre_processing_triggers_usage_rules(
 
     endpoint = _StampedEndpoint("route-x")
     handler = _make_handler(endpoint_value=endpoint)
-    await simple_middleware.run_pre_processing(handler)
-    simple_middleware.behavioral_processor.process_usage_rules.assert_awaited()
+    with patch.object(
+        simple_middleware.behavioral_processor, "process_usage_rules", new=AsyncMock()
+    ) as mock_rules:
+        await simple_middleware.run_pre_processing(handler)
+        mock_rules.assert_awaited()
 
 
 async def test_apply_pre_flight_headers_disabled() -> None:
@@ -414,9 +420,22 @@ async def test_apply_pre_flight_headers_disabled() -> None:
         security_headers=None,
     )
     middleware = SecurityMiddleware(config=config)
-    handler = _make_handler()
+    fake = _FakeHandler(
+        request=SimpleNamespace(
+            method="GET",
+            path="/test",
+            protocol="http",
+            remote_ip="10.0.0.1",
+            headers=tornado.httputil.HTTPHeaders(),
+            body=b"",
+            query_arguments={},
+            full_url=lambda: "http://localhost/test",
+        ),
+        application=SimpleNamespace(settings={}),
+    )
+    handler = cast(RequestHandler, fake)
     await middleware.apply_pre_flight_headers(handler)
-    assert handler._headers_store == {}
+    assert fake._headers_store == {}
     await middleware.reset()
 
 
@@ -468,9 +487,9 @@ async def test_refresh_cloud_ip_ranges_sync_path(
     simple_middleware: SecurityMiddleware,
 ) -> None:
     simple_middleware.config.block_cloud_providers = {"AWS"}
-    cloud_handler.refresh = AsyncMock()
-    await simple_middleware.refresh_cloud_ip_ranges()
-    cloud_handler.refresh.assert_awaited_once()
+    with patch.object(cloud_handler, "refresh", new=AsyncMock()) as mock_refresh:
+        await simple_middleware.refresh_cloud_ip_ranges()
+        mock_refresh.assert_awaited_once()
     assert simple_middleware.last_cloud_ip_refresh > 0
 
 
@@ -484,9 +503,9 @@ async def test_refresh_cloud_ip_ranges_redis_path() -> None:
         block_cloud_providers={"AWS"},
     )
     middleware = SecurityMiddleware(config=config)
-    cloud_handler.refresh_async = AsyncMock()
-    await middleware.refresh_cloud_ip_ranges()
-    cloud_handler.refresh_async.assert_awaited()
+    with patch.object(cloud_handler, "refresh_async", new=AsyncMock()) as mock_async:
+        await middleware.refresh_cloud_ip_ranges()
+        mock_async.assert_awaited()
     await middleware.reset()
 
 

@@ -12,6 +12,7 @@ from guard_core.handlers.ratelimit_handler import (
     rate_limit_handler,
 )
 from guard_core.handlers.redis_handler import RedisManager
+from guard_core.handlers.security_headers_handler import security_headers_manager
 from guard_core.handlers.suspatterns_handler import sus_patterns_handler
 from guard_core.models import SecurityConfig
 
@@ -31,6 +32,7 @@ def _maybe_geo_ip() -> IPInfoManager | None:
 @pytest.fixture(autouse=True)
 async def reset_state() -> AsyncGenerator[None, None]:
     await reset_global_state()
+    await security_headers_manager.reset()
     original_patterns = sus_patterns_handler.patterns.copy()
 
     cloud_instance = cloud_handler._instance

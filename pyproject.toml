@@ -155,18 +155,8 @@ module = "pydantic.*"
 follow_imports = "skip"
 
 [[tool.mypy.overrides]]
-module = "redis.*"
-follow_imports = "skip"
-
-[[tool.mypy.overrides]]
-module = ["guard_core", "guard_core.*", "guard_core.core.*", "guard_core.handlers.*", "guard_core.protocols.*", "guard_core.decorators.*", "guard_core.utils", "guard_core.detection_engine.*"]
+module = "guard_agent"
 ignore_missing_imports = true
-follow_imports = "skip"
-
-[[tool.mypy.overrides]]
-module = ["guard_agent", "guard_agent.*"]
-ignore_missing_imports = true
-follow_imports = "skip"
 
 [tool.pymarkdown.extensions]
 front-matter = {enabled = true}

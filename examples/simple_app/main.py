@@ -645,9 +645,7 @@ class ContentCustomValidationHandler(JSONHandler):
 
 
 class AdvancedBusinessHoursHandler(JSONHandler):
-    @guard_decorator.time_window(
-        start_time="09:00", end_time="17:00", timezone="UTC"
-    )
+    @guard_decorator.time_window(start_time="09:00", end_time="17:00", timezone="UTC")
     async def get(self) -> None:
         self.write_json(
             {
@@ -658,9 +656,7 @@ class AdvancedBusinessHoursHandler(JSONHandler):
 
 
 class AdvancedWeekendHandler(JSONHandler):
-    @guard_decorator.time_window(
-        start_time="00:00", end_time="23:59", timezone="UTC"
-    )
+    @guard_decorator.time_window(start_time="00:00", end_time="23:59", timezone="UTC")
     async def get(self) -> None:
         self.write_json(
             {

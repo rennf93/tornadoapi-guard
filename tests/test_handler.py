@@ -1,14 +1,18 @@
 from __future__ import annotations
 
+import asyncio
 from collections.abc import AsyncGenerator
-from unittest.mock import AsyncMock
+from typing import cast
+from unittest.mock import AsyncMock, patch
 
 import pytest
 import tornado.httpserver
+import tornado.httputil
 import tornado.netutil
 import tornado.web
 from guard_core.models import SecurityConfig
 from tornado.httpclient import AsyncHTTPClient
+from tornado.httputil import HTTPConnection
 
 from tornadoapi_guard import SecurityHandler, SecurityMiddleware
 from tornadoapi_guard.handler import SecurityHandler as HandlerClass
@@ -51,15 +55,13 @@ async def test_get_security_middleware_rejects_wrong_type() -> None:
         method="GET",
         uri="/",
         headers=tornado.httputil.HTTPHeaders(),
-        connection=_FakeConnection(),
+        connection=cast(HTTPConnection, _FakeConnection()),
     )
     handler = HandlerClass(app, request)
     assert handler._get_security_middleware() is None
 
 
 async def test_handler_on_finish_schedules_post_processing() -> None:
-    import asyncio
-
     config = SecurityConfig(
         geo_ip_handler=None,
         enable_redis=False,
@@ -68,7 +70,6 @@ async def test_handler_on_finish_schedules_post_processing() -> None:
     middleware = SecurityMiddleware(config=config)
     await middleware.initialize()
     tracker = AsyncMock()
-    middleware.run_post_processing = tracker
 
     app = tornado.web.Application(
         [(r"/", SimpleHandler)], security_middleware=middleware
@@ -77,13 +78,14 @@ async def test_handler_on_finish_schedules_post_processing() -> None:
         method="GET",
         uri="/",
         headers=tornado.httputil.HTTPHeaders(),
-        connection=_FakeConnection(),
+        connection=cast(HTTPConnection, _FakeConnection()),
     )
     handler = HandlerClass(app, request)
 
-    handler.on_finish()
-    await asyncio.sleep(0)
-    tracker.assert_awaited_once_with(handler)
+    with patch.object(middleware, "run_post_processing", new=tracker):
+        handler.on_finish()
+        await asyncio.sleep(0)
+        tracker.assert_awaited_once_with(handler)
     await middleware.reset()
 
 

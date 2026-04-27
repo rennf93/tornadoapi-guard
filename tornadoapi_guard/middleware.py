@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import time
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from guard_core.core.behavioral import BehavioralContext, BehavioralProcessor
 from guard_core.core.checks.pipeline import SecurityCheckPipeline
@@ -54,7 +54,7 @@ class SecurityMiddleware:
 
             self.redis_handler = RedisManager(config)
 
-        self.agent_handler = None
+        self.agent_handler: Any = None
         if config.enable_agent:
             agent_config = config.to_agent_config()
             if agent_config:

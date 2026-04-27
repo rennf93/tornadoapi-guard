@@ -1,5 +1,5 @@
 import asyncio
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from guard_core.models import SecurityConfig
@@ -44,12 +44,14 @@ async def test_initialize_rebinds_agent_handler_to_composite(
     otel_config: SecurityConfig,
 ) -> None:
     mw = SecurityMiddleware(config=otel_config)
-    assert mw.handler_initializer.composite_handler is None
+    pre_init_composite = mw.handler_initializer.composite_handler
 
     await mw._ensure_initialized()
 
-    assert mw.handler_initializer.composite_handler is not None
-    assert mw.agent_handler is mw.handler_initializer.composite_handler
+    composite = mw.handler_initializer.composite_handler
+    assert pre_init_composite is None
+    assert composite is not None
+    assert mw.agent_handler is composite
 
 
 async def test_initialize_is_noop_when_no_telemetry_enabled() -> None:
@@ -87,9 +89,13 @@ async def test_ensure_initialized_fast_path_skips_lock_when_already_initialized(
     await mw._ensure_initialized()
     assert mw._initialized is True
 
-    mw.initialize = MagicMock(side_effect=AssertionError("must not be called again"))
-    await mw._ensure_initialized()
-    await mw._ensure_initialized()
+    with patch.object(
+        mw,
+        "initialize",
+        new=AsyncMock(side_effect=AssertionError("must not be called again")),
+    ):
+        await mw._ensure_initialized()
+        await mw._ensure_initialized()
 
 
 async def test_behavior_tracker_threaded_through_behavioral_context() -> None:

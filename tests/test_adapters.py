@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
+from typing import cast
 from unittest.mock import MagicMock
 
 import pytest
 from tornado.httputil import HTTPHeaders
+from tornado.web import RequestHandler
 
 from tornadoapi_guard.adapters import (
     TornadoGuardRequest,
@@ -31,7 +33,7 @@ def make_handler(
     body: bytes = b"",
     query_arguments: dict[str, list[bytes]] | None = None,
     settings: dict[str, object] | None = None,
-) -> _FakeHandler:
+) -> RequestHandler:
     http_headers = HTTPHeaders()
     for name, value in (headers or {}).items():
         http_headers.add(name, value)
@@ -47,7 +49,7 @@ def make_handler(
         full_url=lambda: f"{protocol}://localhost{path}",
     )
     application = SimpleNamespace(settings=settings or {})
-    return _FakeHandler(request=request, application=application)
+    return cast(RequestHandler, _FakeHandler(request=request, application=application))
 
 
 async def test_request_url_path() -> None:
