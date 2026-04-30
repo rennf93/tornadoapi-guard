@@ -10,6 +10,19 @@ Unreleased
 
 ___
 
+v1.0.0 (2026-04-30)
+-------------------
+
+Initial public release — fail-secure by default (upstream), agent-stats surface, version reporting (v1.0.0)
+-----------------------------------------------------------------------------------------------------------
+
+- **Upstream behavior — `SecurityConfig.fail_secure` defaults to `True`** (inherited from `guard-core >= 3.0.0`). When any security check raises an unhandled exception, the request is blocked with HTTP 500 instead of logging and falling through. Restore the old behavior on deployments that depend on it via `SecurityConfig(fail_secure=False)`. Recommended posture: keep the new default, surface any check exceptions in your monitoring, and fix them — the alternative could mask serious bugs.
+- **Added** — `SecurityMiddleware.agent_stats` read-only `@property` returning the agent's telemetry buffer state. Returns `{"enabled": False}` when no agent is wired; otherwise returns `{"enabled": True, **agent_handler.get_stats()}` exposing `events_dropped`, `metrics_dropped`, `circuit_breaker_state`, and other agent counters. No caching — fresh on each call. Lets app teams build health endpoints that surface agent-side drops and circuit-breaker trips without scraping the agent directly.
+- **Added** — `from tornadoapi_guard import __version__` — package version is exported via `importlib.metadata.version("tornadoapi_guard")` with a `"0.0.0+unknown"` fallback if the package is not installed (development from source). Pairs with `guard-core >= 3.0.0`'s `SecurityConfig.agent_guard_version` so application code can wire the tornadoapi-guard version through to the agent for SaaS-side telemetry attribution: `SecurityConfig(agent_guard_version=__version__)`.
+- **Public API** — `SecurityMiddleware.agent_stats` and `__version__` are part of the public surface from this first release.
+
+___
+
 v1.0.0 (2026-04-25)
 -------------------
 
@@ -30,8 +43,8 @@ guard-core 2.0.0 protocol alignment (v1.0.0)
 
 ___
 
-v1.0.0 (2026-04-25)
--------------------
+v1.0.0 (2026-04-25, OTel hot-path)
+----------------------------------
 
 Integration fixes for OTel + enrichment pipeline (v1.0.0)
 ---------------------------------------------------------

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import time
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from guard_core.core.behavioral import BehavioralContext, BehavioralProcessor
 from guard_core.core.checks.pipeline import SecurityCheckPipeline
@@ -155,6 +155,13 @@ class SecurityMiddleware:
     @property
     def guard_response_factory(self) -> TornadoResponseFactory:
         return self._guard_response_factory
+
+    @property
+    def agent_stats(self) -> dict[str, Any]:
+        if self.agent_handler is None:
+            return {"enabled": False}
+        handler_stats = cast(Any, self.agent_handler).get_stats()
+        return {"enabled": True, **handler_stats}
 
     def _configure_security_headers(self, config: SecurityConfig) -> None:
         if not config.security_headers:

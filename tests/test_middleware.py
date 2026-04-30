@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import AsyncGenerator
+from unittest.mock import Mock
 
 import pytest
 import tornado.httpserver
@@ -109,3 +110,54 @@ async def test_blacklisted_ip_blocked(
         assert exc_info.value.code == 403
     finally:
         client.close()
+
+
+async def test_agent_stats_returns_disabled_when_agent_handler_unset() -> None:
+    config = SecurityConfig(enable_agent=False)
+    middleware = SecurityMiddleware(config=config)
+    assert middleware.agent_handler is None
+    assert middleware.agent_stats == {"enabled": False}
+
+
+async def test_agent_stats_returns_enabled_with_agent_handler_stats() -> None:
+    config = SecurityConfig()
+    middleware = SecurityMiddleware(config=config)
+
+    fake_handler = Mock()
+    fake_handler.get_stats.return_value = {
+        "buffer_stats": {"events_dropped": 0, "metrics_dropped": 0},
+        "transport_stats": {"circuit_breaker_state": "CLOSED"},
+    }
+    middleware.agent_handler = fake_handler
+
+    stats = middleware.agent_stats
+    assert stats["enabled"] is True
+    assert stats["buffer_stats"] == {"events_dropped": 0, "metrics_dropped": 0}
+    assert stats["transport_stats"] == {"circuit_breaker_state": "CLOSED"}
+    fake_handler.get_stats.assert_called_once()
+
+
+async def test_agent_stats_reflects_live_drop_counter_increments() -> None:
+    config = SecurityConfig()
+    middleware = SecurityMiddleware(config=config)
+
+    fake_handler = Mock()
+    fake_handler.get_stats.return_value = {
+        "buffer_stats": {"events_dropped": 0, "metrics_dropped": 0},
+        "transport_stats": {"circuit_breaker_state": "CLOSED"},
+    }
+    middleware.agent_handler = fake_handler
+
+    first = middleware.agent_stats
+    assert first["buffer_stats"]["events_dropped"] == 0
+
+    fake_handler.get_stats.return_value = {
+        "buffer_stats": {"events_dropped": 7, "metrics_dropped": 3},
+        "transport_stats": {"circuit_breaker_state": "OPEN"},
+    }
+
+    second = middleware.agent_stats
+    assert second["buffer_stats"]["events_dropped"] == 7
+    assert second["buffer_stats"]["metrics_dropped"] == 3
+    assert second["transport_stats"]["circuit_breaker_state"] == "OPEN"
+    assert fake_handler.get_stats.call_count == 2

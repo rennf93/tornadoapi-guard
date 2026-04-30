@@ -1,3 +1,6 @@
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as _pkg_version
+
 from guard_core import (
     BehaviorRule,
     BehaviorTracker,
@@ -33,7 +36,13 @@ from tornadoapi_guard.adapters import (
 from tornadoapi_guard.handler import SecurityHandler
 from tornadoapi_guard.middleware import SecurityMiddleware
 
+try:
+    __version__ = _pkg_version("tornadoapi_guard")
+except PackageNotFoundError:
+    __version__ = "0.0.0+unknown"
+
 __all__ = [
+    "__version__",
     "SecurityMiddleware",
     "SecurityHandler",
     "SecurityConfig",

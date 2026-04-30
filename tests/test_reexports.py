@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 import tornadoapi_guard
 
 
@@ -50,3 +52,29 @@ def test_core_types_importable() -> None:
     assert GuardRequest is not None
     assert GuardResponse is not None
     assert GuardResponseFactory is not None
+
+
+def test_version_exported_matches_package_metadata() -> None:
+    from importlib.metadata import version
+
+    from tornadoapi_guard import __version__
+
+    assert __version__ == version("tornadoapi_guard")
+    assert __version__ != "0.0.0+unknown"
+
+
+def test_version_falls_back_when_package_metadata_missing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import importlib
+    from importlib.metadata import PackageNotFoundError
+
+    def _raise(name: str) -> str:
+        raise PackageNotFoundError(name)
+
+    monkeypatch.setattr("importlib.metadata.version", _raise)
+    reloaded = importlib.reload(tornadoapi_guard)
+    try:
+        assert reloaded.__version__ == "0.0.0+unknown"
+    finally:
+        importlib.reload(tornadoapi_guard)

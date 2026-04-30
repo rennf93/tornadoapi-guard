@@ -106,6 +106,62 @@ pip install tornadoapi-guard
 
 ___
 
+v1.0.0 release notes
+--------------------
+
+`tornadoapi-guard` 1.0.0 ships against `guard-core >= 3.0.0` and exposes two adapter-side surfaces alongside the upstream fail-secure default.
+
+### Upstream fail-secure default
+
+`SecurityConfig.fail_secure` defaults to `True` (inherited from `guard-core 3.0.0`). If any security check raises an unhandled exception, the request is blocked with HTTP 500 instead of falling through. Opt out on deployments that need fail-open behavior:
+
+```python
+from tornadoapi_guard import SecurityConfig, SecurityMiddleware
+
+config = SecurityConfig(
+    fail_secure=False,
+)
+middleware = SecurityMiddleware(config=config)
+```
+
+The recommended migration is to keep the new default, surface check exceptions in your monitoring, and fix them at the root.
+
+### Reading agent buffer state
+
+`SecurityMiddleware.agent_stats` exposes the agent's live buffer drop counters and circuit-breaker state without reaching into the agent directly. Wire it into a Tornado-style health-check handler:
+
+```python
+import tornado.web
+from tornadoapi_guard import SecurityMiddleware
+
+
+class AgentHealthHandler(tornado.web.RequestHandler):
+    async def get(self) -> None:
+        middleware: SecurityMiddleware = self.application.settings["security_middleware"]
+        self.write(middleware.agent_stats)
+# {"enabled": True,
+#  "buffer_stats": {"events_dropped": 0, "metrics_dropped": 0, ...},
+#  "transport_stats": {"circuit_breaker_state": "CLOSED", ...}}
+```
+
+When the agent is disabled or failed to initialize, the property returns `{"enabled": False}`. Read it on each scrape — it reflects live counters and is not cached.
+
+### Wiring the package version through to the agent
+
+```python
+from tornadoapi_guard import SecurityConfig, __version__
+
+config = SecurityConfig(
+    enable_agent=True,
+    agent_api_key="...",
+    agent_guard_version=__version__,
+)
+```
+
+`__version__` resolves via `importlib.metadata.version("tornadoapi_guard")` and falls back to `"0.0.0+unknown"` when the package is not installed (development from source). Pairs with `guard-core >= 3.0.0`'s `SecurityConfig.agent_guard_version` for SaaS-side telemetry attribution.
+
+___
+
 Quick Start
 -----------
 
