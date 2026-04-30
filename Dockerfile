@@ -1,12 +1,13 @@
 ARG PYTHON_VERSION=3.10
 FROM python:${PYTHON_VERSION}-slim
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     libsodium23 \
     wget \
     build-essential \
     libffi-dev \
-    curl
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 

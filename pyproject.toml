@@ -1,7 +1,7 @@
 [project]
 name = "tornadoapi_guard"
-version = "0.0.1"
-description = "A security library for Tornado to control IPs, log requests, and detect penetration attempts. Powered by guard-core."
+version = "1.0.0"
+description = "Production-ready security middleware for Tornado — IP filtering, rate limiting, penetration detection, and 20+ per-route security decorators."
 authors = [
     {name = "Renzo Franceschini", email = "rennf93@users.noreply.github.com"}
 ]
@@ -9,7 +9,7 @@ readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.10,<3.15"
 classifiers = [
-    "Development Status :: 2 - Pre-Alpha",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
@@ -19,14 +19,32 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Security",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
+keywords = [
+    "tornado",
+    "security",
+    "middleware",
+    "rate-limiting",
+    "ip-filtering",
+    "waf",
+    "penetration-detection",
+    "api-security",
 ]
 dependencies = [
-    "tornado>=6.5.5,<7.0.0",
-    "guard-core>=1.0.1,<2.0.0",
+    "tornado",
+    "guard-core",
 ]
 
 [project.urls]
 Homepage = "https://github.com/rennf93/tornadoapi-guard"
+Documentation = "https://rennf93.github.io/tornadoapi-guard/"
+Repository = "https://github.com/rennf93/tornadoapi-guard"
+Changelog = "https://github.com/rennf93/tornadoapi-guard/blob/master/CHANGELOG.md"
+"Bug Tracker" = "https://github.com/rennf93/tornadoapi-guard/issues"
 
 [project.optional-dependencies]
 dev = [
@@ -47,7 +65,6 @@ dev = [
     "pytest-mock",
     "radon",
     "ruff",
-    "safety",
     "types-cachetools",
     "types-requests",
     "vulture",
@@ -106,10 +123,16 @@ asyncio_mode = "auto"
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 asyncio_default_fixture_loop_scope = "function"
-addopts = "--cov=tornadoapi_guard --cov-report=term-missing"
+addopts = "--cov=tornadoapi_guard --cov-branch --cov-report=term-missing"
 markers = [
     "asyncio: mark tests as async"
 ]
+
+[tool.coverage.run]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
 
 [tool.mypy]
 python_version = "3.10"
@@ -132,13 +155,14 @@ module = "pydantic.*"
 follow_imports = "skip"
 
 [[tool.mypy.overrides]]
-module = "redis.*"
-follow_imports = "skip"
-
-[[tool.mypy.overrides]]
-module = ["guard_core", "guard_core.*", "guard_core.core.*", "guard_core.handlers.*", "guard_core.protocols.*", "guard_core.decorators.*", "guard_core.utils", "guard_core.detection_engine.*"]
+module = "guard_agent"
 ignore_missing_imports = true
-follow_imports = "skip"
+
+[tool.pymarkdown.extensions]
+front-matter = {enabled = true}
+
+[tool.pymarkdown.plugins.md003]
+enabled = false
 
 [tool.pymarkdown.plugins.md007]
 # MD007 - Unordered list indentation (set to 2 spaces)
@@ -229,8 +253,11 @@ ignore = []
 exclude = ["tests", ".venv", "vulture_whitelist.py", "examples", "docs", "manual_testing"]
 extend_exclude = ["conftest.py", "setup.py"]
 known_first_party = ["tornadoapi_guard", "guard_core"]
-per_rule_ignores = { "DEP002" = [
+per_rule_ignores = { "DEP001" = [
+    "guard_agent",
+], "DEP002" = [
     "guard-core",
+    "tornado",
     "httpx",
     "bandit",
     "deptry",
@@ -248,7 +275,6 @@ per_rule_ignores = { "DEP002" = [
     "pytest-mock",
     "radon",
     "ruff",
-    "safety",
     "types-cachetools",
     "types-requests",
     "vulture",

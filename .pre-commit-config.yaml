@@ -34,12 +34,6 @@ repos:
         language: system
         types: [python]
         pass_filenames: false
-      # - id: safety
-      #   name: safety
-      #   entry: uv run safety scan
-      #   require_serial: true
-      #   language: system
-      #   pass_filenames: false
       - id: radon-cc
         name: radon-cyclomatic-complexity
         entry: uv run radon cc tornadoapi_guard -nc
@@ -60,10 +54,3 @@ repos:
         require_serial: true
         language: system
         pass_filenames: false
-      # - id: semgrep
-        # name: semgrep
-        # entry: uv run semgrep --config=auto --error tornadoapi_guard
-        # require_serial: true
-        # language: system
-        # types: [python]
-        # pass_filenames: false
