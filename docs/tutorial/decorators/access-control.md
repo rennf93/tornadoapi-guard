@@ -171,6 +171,20 @@ Bypassing Security Checks
 
 Selectively disable specific security checks for certain routes:
 
+. Valid Bypass Tokens
+-------------------
+
+| Token | Skips |
+|---|---|
+| `all` | The entire security pipeline for the route |
+| `ip_ban` | The standing banned-IP check |
+| `ip` | Global IP whitelist/blacklist, blocked countries and blocked clouds |
+| `clouds` | The cloud provider check |
+| `rate_limit` | Global, endpoint, route and geo rate limiting |
+| `penetration` | Detection engine / suspicious activity |
+
+Unknown tokens are ignored, so a typo leaves the check fully enforced rather than raising. There is no country-only token: country blocking is bypassed by `ip`, which also lifts the global IP whitelist and blacklist for that route.
+
 . Bypass Specific Checks
 ----------------------
 
@@ -202,7 +216,7 @@ class MetricsHandler(SecurityHandler):
 
 
 class PublicDocsHandler(SecurityHandler):
-    @guard_deco.bypass(["countries", "clouds"])
+    @guard_deco.bypass(["ip"])
     async def get(self) -> None:
         self.write({"docs": "public documentation"})
 ```

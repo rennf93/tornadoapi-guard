@@ -284,12 +284,14 @@ class AccessNoAWSHandler(JSONHandler):
 
 
 class AccessBypassHandler(JSONHandler):
-    @guard_decorator.bypass(["rate_limit", "geo_check"])
+    @guard_decorator.bypass(["rate_limit", "ip"])
     async def get(self) -> None:
         self.write_json(
             {
-                "message": "This endpoint bypasses rate limiting and geo checks",
-                "details": {"bypassed_checks": ["rate_limit", "geo_check"]},
+                "message": (
+                    "This endpoint bypasses rate limiting and IP/country/cloud checks"
+                ),
+                "details": {"bypassed_checks": ["rate_limit", "ip"]},
             }
         )
 

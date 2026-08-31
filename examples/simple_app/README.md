@@ -31,8 +31,7 @@ pip install -r requirements.txt
 python main.py
 ```
 
-The app listens on `http://127.0.0.1:8000` by default. Override host/port with the
-`HOST` and `PORT` environment variables.
+The app listens on `http://127.0.0.1:8000` by default. Override host/port with the `HOST` and `PORT` environment variables.
 
 ___
 
@@ -50,7 +49,7 @@ Available endpoints
 - `/access/country-allow` — Allow only specific countries
 - `/access/no-cloud` — Block all known cloud provider IPs
 - `/access/no-aws` — Block AWS IPs only
-- `/access/bypass-demo` — Bypass rate limit + geo check for this route
+- `/access/bypass-demo` — Bypass rate limit + IP/country/cloud checks for this route
 - `/auth/https-only` — Require HTTPS
 - `/auth/bearer-auth` — Require Bearer token in Authorization header
 - `/auth/api-key` — Require `X-API-Key` header
@@ -94,10 +93,7 @@ ___
 Note on `/docs`
 ---------------
 
-Tornado does not auto-generate an OpenAPI UI. Unlike `fastapi-guard`, there is no
-`/docs` page in this example. Use the `/` endpoint for the route map, and refer to the
-MkDocs tutorial under `docs/tutorial/examples/example-app.md` for a walkthrough of
-each feature.
+Tornado does not auto-generate an OpenAPI UI. Unlike `fastapi-guard`, there is no `/docs` page in this example. Use the `/` endpoint for the route map, and refer to the MkDocs tutorial under `docs/tutorial/examples/example-app.md` for a walkthrough of each feature.
 
 ___
 
