@@ -3,10 +3,21 @@ Release Notes
 
 ___
 
-Unreleased
-----------
+v1.0.0 (2026-09-24)
+-------------------
 
-- Pipeline-first CORS handling. `SecurityHandler.prepare()` runs the security pipeline before any CORS short-circuit. Preflight handling moved to `guard_core.sync.handlers.cors_handler.CorsHandler` so banned IPs and rate-limited clients can no longer preflight freely.
+First stable release: full pipeline parity, CORS through the engine, guard-core 4.0.x tracking (v1.0.0)
+--------------------------------------------------------------------------------------------------------
+
+This is the first tagged, stable release of tornadoapi-guard. PyPI 0.0.1 (2026-04-05) was a scaffolding pre-release; the v1.0.0 draft entries below were never published and are superseded by this entry, which summarizes the full delta since 0.0.1.
+
+- **Parity with the other adapters** - `SecurityMiddleware` was rebuilt around guard-core's own components instead of a thin partial wrapper: the `SecurityCheckPipeline` runs the full check chain, with `HandlerInitializer`, `RouteConfigResolver`/`RoutingContext`, `RequestValidator`/`ValidationContext`, `ErrorResponseFactory`/`ResponseContext`, `BehavioralProcessor`/`BehavioralContext`, `SecurityEventBus`/`MetricsCollector`, the cloud handler, `RateLimitManager`, the security headers manager, and per-route decorators through `BaseSecurityDecorator`/`RouteConfig`. The request/response adapters (`tornadoapi_guard/adapters.py`) were reworked to feed the pipeline the same shape the FastAPI and Flask adapters produce.
+- **Pipeline-first CORS** - `SecurityHandler.prepare()` runs the security pipeline before any CORS short-circuit, and preflight handling is delegated to `guard_core.sync.handlers.cors_handler.CorsHandler` (with `is_preflight`), so banned IPs and rate-limited clients can no longer preflight freely.
+- **Compatibility** - The `guard-core` dependency moves from unconstrained to `>=4.0.0` (no upper bound) in `pyproject.toml`; master's previous `>=1.0.1,<2.0.0` cap excluded the current 4.0.x engine line. This release tracks guard-core 4.0.4.
+- **Added (tests)** - New suites covering the middleware pipeline end to end and in unit form, wiring, lifecycle, CORS through the pipeline, the Tornado handler, the adapters, and the public re-exports.
+- **Added (examples)** - `examples/simple_app` demonstrating middleware and handler integration.
+- **Packaging (dev)** - `guard-agent` is added to the `dev` extra, matching the other adapters: the middleware lifecycle test constructs the middleware with `enable_agent=True`, and CI installs only `uv sync --extra dev`, so without it the suite fails with `AgentPackageNotInstalledError`.
+- **Documentation** - Added `AGENTS.md`/`CLAUDE.md` agent guidance, the tornadoapi-guard package skill, and corrected the decorator docs to list valid bypass tokens and remove invalid examples.
 
 ___
 
