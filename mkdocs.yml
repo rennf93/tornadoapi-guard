@@ -36,8 +36,8 @@ theme:
     - toc.follow
   icon:
     repo: fontawesome/brands/github
-  logo: assets/logo.svg
-  favicon: assets/favicon.png
+  logo: assets/guard_core_logo.svg
+  favicon: assets/guard_core_favicon.png
 
 nav:
   - Home: index.md
@@ -65,6 +65,7 @@ nav:
         - Components: tutorial/security/detection-engine/components.md
         - Configuration: tutorial/security/detection-engine/configuration.md
         - Performance Tuning: tutorial/security/detection-engine/performance-tuning.md
+      - HTTP Security Headers: tutorial/security/http-security-headers.md
       - Proxy Security: tutorial/security/proxy-security.md
       - Custom Patterns: tutorial/security/custom-patterns.md
       - Security Monitoring: tutorial/security/monitoring.md
@@ -72,12 +73,15 @@ nav:
       - Security Config: tutorial/configuration/security-config.md
       - CORS: tutorial/configuration/cors.md
       - Logging: tutorial/configuration/logging.md
+      - Telemetry: tutorial/configuration/telemetry.md
     - Redis Integration: tutorial/redis-integration/caching.md
     - Advanced Customizations: tutorial/advanced-customizations.md
     - Example App: tutorial/examples/example-app.md
   - API Reference:
     - Overview: api/overview.md
     - SecurityMiddleware: api/security-middleware.md
+    - SecurityHandler: api/security-handler.md
+    - Adapters: api/adapters.md
     - Core Architecture: api/core-architecture.md
     - SecurityDecorators: api/decorators.md
     - BehaviorManager: api/behavior-manager.md
@@ -135,8 +139,7 @@ extra:
       link: https://pypi.org/project/tornadoapi-guard/
 
   analytics:
-    provider: google
-    property: !ENV GOOGLE_ANALYTICS_KEY
+    provider: custom
     feedback:
       title: Was this page helpful?
       ratings:
@@ -161,7 +164,7 @@ extra:
     - property: og:description
       content: Comprehensive security library for Tornado applications providing IP control, request logging, and penetration detection
     - property: og:image
-      content: https://rennf93.github.io/tornadoapi-guard/assets/big_logo.svg
+      content: https://rennf93.github.io/tornadoapi-guard/latest/assets/tornadoapi_guard_legend.svg
     - name: keywords
       content: tornado, security, middleware, python, ip control, rate limiting, penetration detection
 

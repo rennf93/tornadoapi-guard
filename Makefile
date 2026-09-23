@@ -6,19 +6,19 @@ DEFAULT_PYTHON = 3.10
 .PHONY: install
 install:
 	@uv sync
-	@find . | grep -E "(__pycache__|\.pyc|\.pyo|\.pytest_cache|\.ruff_cache|\.mypy_cache)" | xargs rm -rf
+	@find . -type d \( -name "__pycache__" -o -name ".pytest_cache" -o -name ".ruff_cache" -o -name ".mypy_cache" \) -exec rm -rf {} + 2>/dev/null; find . -type f \( -name "*.pyc" -o -name "*.pyo" \) -delete 2>/dev/null; true
 
 # Install dev dependencies
 .PHONY: install-dev
 install-dev:
 	@uv sync --extra dev
-	@find . | grep -E "(__pycache__|\.pyc|\.pyo|\.pytest_cache|\.ruff_cache|\.mypy_cache)" | xargs rm -rf
+	@find . -type d \( -name "__pycache__" -o -name ".pytest_cache" -o -name ".ruff_cache" -o -name ".mypy_cache" \) -exec rm -rf {} + 2>/dev/null; find . -type f \( -name "*.pyc" -o -name "*.pyo" \) -delete 2>/dev/null; true
 
 # Update dependencies
 .PHONY: lock
 lock:
 	@uv lock
-	@find . | grep -E "(__pycache__|\.pyc|\.pyo|\.pytest_cache|\.ruff_cache|\.mypy_cache)" | xargs rm -rf
+	@find . -type d \( -name "__pycache__" -o -name ".pytest_cache" -o -name ".ruff_cache" -o -name ".mypy_cache" \) -exec rm -rf {} + 2>/dev/null; find . -type f \( -name "*.pyc" -o -name "*.pyo" \) -delete 2>/dev/null; true
 
 
 # Upgrade dependencies
@@ -26,7 +26,7 @@ lock:
 upgrade:
 	@uv lock --upgrade
 	@uv sync --all-extras
-	@find . | grep -E "(__pycache__|\.pyc|\.pyo|\.pytest_cache|\.ruff_cache|\.mypy_cache)" | xargs rm -rf
+	@find . -type d \( -name "__pycache__" -o -name ".pytest_cache" -o -name ".ruff_cache" -o -name ".mypy_cache" \) -exec rm -rf {} + 2>/dev/null; find . -type f \( -name "*.pyc" -o -name "*.pyo" \) -delete 2>/dev/null; true
 
 # Start example-app
 .PHONY: start-example
@@ -65,7 +65,7 @@ fix:
 	@echo "Fixing formatting w/ Ruff..."
 	@echo ''
 	@uv run ruff check --fix .
-	@find . | grep -E "(__pycache__|\.pyc|\.pyo|\.pytest_cache|\.ruff_cache|\.mypy_cache)" | xargs rm -rf
+	@find . -type d \( -name "__pycache__" -o -name ".pytest_cache" -o -name ".ruff_cache" -o -name ".mypy_cache" \) -exec rm -rf {} + 2>/dev/null; find . -type f \( -name "*.pyc" -o -name "*.pyo" \) -delete 2>/dev/null; true
 
 # Find dead code with Vulture
 .PHONY: vulture
@@ -75,7 +75,7 @@ vulture:
 #	@uv run vulture
 #	@uv run vulture --verbose
 	@uv run vulture vulture_whitelist.py
-	@find . | grep -E "(__pycache__|\.pyc|\.pyo|\.pytest_cache|\.ruff_cache|\.mypy_cache)" | xargs rm -rf
+	@find . -type d \( -name "__pycache__" -o -name ".pytest_cache" -o -name ".ruff_cache" -o -name ".mypy_cache" \) -exec rm -rf {} + 2>/dev/null; find . -type f \( -name "*.pyc" -o -name "*.pyo" \) -delete 2>/dev/null; true
 
 # Security scan with Bandit
 .PHONY: bandit
@@ -83,7 +83,7 @@ bandit:
 	@echo "Running Bandit security scan..."
 	@echo ''
 	@uv run bandit -r tornadoapi_guard -ll
-	@find . | grep -E "(__pycache__|\.pyc|\.pyo|\.pytest_cache|\.ruff_cache|\.mypy_cache)" | xargs rm -rf
+	@find . -type d \( -name "__pycache__" -o -name ".pytest_cache" -o -name ".ruff_cache" -o -name ".mypy_cache" \) -exec rm -rf {} + 2>/dev/null; find . -type f \( -name "*.pyc" -o -name "*.pyo" \) -delete 2>/dev/null; true
 
 # Check dependencies with Safety
 .PHONY: safety
@@ -91,7 +91,7 @@ safety:
 	@echo "Checking dependencies with Safety..."
 	@echo ''
 	@uv run safety scan
-	@find . | grep -E "(__pycache__|\.pyc|\.pyo|\.pytest_cache|\.ruff_cache|\.mypy_cache)" | xargs rm -rf
+	@find . -type d \( -name "__pycache__" -o -name ".pytest_cache" -o -name ".ruff_cache" -o -name ".mypy_cache" \) -exec rm -rf {} + 2>/dev/null; find . -type f \( -name "*.pyc" -o -name "*.pyo" \) -delete 2>/dev/null; true
 
 # Audit dependencies with pip-audit
 .PHONY: pip-audit
@@ -99,7 +99,7 @@ pip-audit:
 	@echo "Auditing dependencies with pip-audit..."
 	@echo ''
 	@uv run pip-audit
-	@find . | grep -E "(__pycache__|\.pyc|\.pyo|\.pytest_cache|\.ruff_cache|\.mypy_cache)" | xargs rm -rf
+	@find . -type d \( -name "__pycache__" -o -name ".pytest_cache" -o -name ".ruff_cache" -o -name ".mypy_cache" \) -exec rm -rf {} + 2>/dev/null; find . -type f \( -name "*.pyc" -o -name "*.pyo" \) -delete 2>/dev/null; true
 
 # Analyze code complexity with Radon
 .PHONY: radon
@@ -114,7 +114,7 @@ radon:
 	@echo ''
 	@echo "Raw Metrics:"
 	@uv run radon raw tornadoapi_guard
-	@find . | grep -E "(__pycache__|\.pyc|\.pyo|\.pytest_cache|\.ruff_cache|\.mypy_cache)" | xargs rm -rf
+	@find . -type d \( -name "__pycache__" -o -name ".pytest_cache" -o -name ".ruff_cache" -o -name ".mypy_cache" \) -exec rm -rf {} + 2>/dev/null; find . -type f \( -name "*.pyc" -o -name "*.pyo" \) -delete 2>/dev/null; true
 
 # Check complexity thresholds with Xenon
 .PHONY: xenon
@@ -122,7 +122,7 @@ xenon:
 	@echo "Checking complexity thresholds with Xenon..."
 	@echo ''
 	@uv run xenon tornadoapi_guard --max-absolute B --max-modules A --max-average A
-	@find . | grep -E "(__pycache__|\.pyc|\.pyo|\.pytest_cache|\.ruff_cache|\.mypy_cache)" | xargs rm -rf
+	@find . -type d \( -name "__pycache__" -o -name ".pytest_cache" -o -name ".ruff_cache" -o -name ".mypy_cache" \) -exec rm -rf {} + 2>/dev/null; find . -type f \( -name "*.pyc" -o -name "*.pyo" \) -delete 2>/dev/null; true
 
 # Analyze dependencies with Deptry
 .PHONY: deptry
@@ -130,14 +130,14 @@ deptry:
 	@echo "Analyzing dependencies with Deptry..."
 	@echo ''
 	@uv run deptry .
-	@find . | grep -E "(__pycache__|\.pyc|\.pyo|\.pytest_cache|\.ruff_cache|\.mypy_cache)" | xargs rm -rf
+	@find . -type d \( -name "__pycache__" -o -name ".pytest_cache" -o -name ".ruff_cache" -o -name ".mypy_cache" \) -exec rm -rf {} + 2>/dev/null; find . -type f \( -name "*.pyc" -o -name "*.pyo" \) -delete 2>/dev/null; true
 
 # Lint local (without Docker)
 .PHONY: local-test
 local-test:
 	@REDIS_URL=$${REDIS_URL:-redis://localhost:6379} \
 	uv run pytest -v --cov=tornadoapi_guard --cov-report=term-missing
-	@find . | grep -E "(__pycache__|\.pyc|\.pyo|\.pytest_cache|\.ruff_cache|\.mypy_cache)" | xargs rm -rf
+	@find . -type d \( -name "__pycache__" -o -name ".pytest_cache" -o -name ".ruff_cache" -o -name ".mypy_cache" \) -exec rm -rf {} + 2>/dev/null; find . -type f \( -name "*.pyc" -o -name "*.pyo" \) -delete 2>/dev/null; true
 
 # Run all security checks
 .PHONY: security
@@ -219,19 +219,19 @@ test-3.14:
 .PHONY: serve-docs
 serve-docs:
 	@uv run mkdocs serve
-	@find . | grep -E "(__pycache__|\.pyc|\.pyo|\.pytest_cache|\.ruff_cache|\.mypy_cache)" | xargs rm -rf
+	@find . -type d \( -name "__pycache__" -o -name ".pytest_cache" -o -name ".ruff_cache" -o -name ".mypy_cache" \) -exec rm -rf {} + 2>/dev/null; find . -type f \( -name "*.pyc" -o -name "*.pyo" \) -delete 2>/dev/null; true
 
 # Lint documentation
 .PHONY: lint-docs
 lint-docs:
 	@uv run pymarkdownlnt scan -r -e ./.venv -e ./.git -e ./.github -e ./data -e ./tornadoapi_guard -e ./tests -e ./.claude -e ./CLAUDE.md -e ./.cursor -e ./.kiro -e ./ZZZ .
-	@find . | grep -E "(__pycache__|\.pyc|\.pyo|\.pytest_cache|\.ruff_cache|\.mypy_cache)" | xargs rm -rf
+	@find . -type d \( -name "__pycache__" -o -name ".pytest_cache" -o -name ".ruff_cache" -o -name ".mypy_cache" \) -exec rm -rf {} + 2>/dev/null; find . -type f \( -name "*.pyc" -o -name "*.pyo" \) -delete 2>/dev/null; true
 
 # Fix documentation
 .PHONY: fix-docs
 fix-docs:
 	@uv run pymarkdownlnt fix -r -e ./.venv -e ./.git -e ./.github -e ./data -e ./tornadoapi_guard -e ./tests -e ./.claude -e ./CLAUDE.md -e ./.cursor -e ./.kiro -e ./ZZZ .
-	@find . | grep -E "(__pycache__|\.pyc|\.pyo|\.pytest_cache|\.ruff_cache|\.mypy_cache)" | xargs rm -rf
+	@find . -type d \( -name "__pycache__" -o -name ".pytest_cache" -o -name ".ruff_cache" -o -name ".mypy_cache" \) -exec rm -rf {} + 2>/dev/null; find . -type f \( -name "*.pyc" -o -name "*.pyo" \) -delete 2>/dev/null; true
 
 # Prune
 .PHONY: prune
@@ -241,7 +241,7 @@ prune:
 # Clean Cache Files
 .PHONY: clean
 clean:
-	@find . | grep -E "(__pycache__|\.pyc|\.pyo|\.pytest_cache|\.ruff_cache|\.mypy_cache)" | xargs rm -rf
+	@find . -type d \( -name "__pycache__" -o -name ".pytest_cache" -o -name ".ruff_cache" -o -name ".mypy_cache" \) -exec rm -rf {} + 2>/dev/null; find . -type f \( -name "*.pyc" -o -name "*.pyo" \) -delete 2>/dev/null; true
 
 # Version Management
 .PHONY: bump-version

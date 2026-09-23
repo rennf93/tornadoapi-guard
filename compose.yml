@@ -5,13 +5,15 @@ services:
         args:
           PYTHON_VERSION: ${PYTHON_VERSION:-3.10}
       image: tornadoapi-guard-example-py${PYTHON_VERSION:-3.10}
-      command: python examples/main.py
+      command: python examples/simple_app/main.py
       ports:
         - "8000:8000"
       environment:
         - REDIS_URL=redis://redis:6379
         - REDIS_PREFIX=${REDIS_PREFIX:-"tornadoapi_guard:"}
         - IPINFO_TOKEN=${IPINFO_TOKEN:-"test_token"}
+        - HOST=0.0.0.0
+        - PORT=8000
       volumes:
         - ./examples:/app/examples:z
         - ./tornadoapi_guard:/app/tornadoapi_guard:z

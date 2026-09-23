@@ -42,7 +42,7 @@ ___
 Environment
 -----------
 
-- TornadoAPI Guard version: [e.g. 0.0.1]
+- TornadoAPI Guard version: [e.g. 1.0.0]
 - Python version: [e.g. 3.11.10]
 - Tornado version: [e.g. 6.5.5]
 - OS: [e.g. Ubuntu 22.04, Windows 11, MacOS 15.4]

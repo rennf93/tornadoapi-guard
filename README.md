@@ -1,4 +1,8 @@
-# tornadoapi-guard
+<p align="center">
+    <a href="https://rennf93.github.io/tornadoapi-guard/latest/">
+        <img src="https://rennf93.github.io/tornadoapi-guard/latest/assets/tornadoapi_guard_legend.svg" alt="TornadoAPI Guard">
+    </a>
+</p>
 
 ---
 
@@ -23,17 +27,54 @@
     <img src="https://img.shields.io/badge/Redis-FF4438.svg?style=flat&amp;logo=Redis&amp;logoColor=white" alt="Redis">
 </p>
 
+<p align="center">
+    <a href="https://guard-core.com">Website</a> &middot;
+    <a href="https://rennf93.github.io/tornadoapi-guard/latest/">Docs</a> &middot;
+    <a href="https://playground.guard-core.com">Playground</a> &middot;
+    <a href="https://app.guard-core.com">Dashboard</a> &middot;
+    <a href="https://discord.gg/ZW7ZJbjMkK">Discord</a>
+</p>
+
 ---
 
-Part of the **Guard Security Ecosystem**:
+## Ecosystem
 
-| Framework | Package | Language |
-|-----------|---------|----------|
-| FastAPI | [fastapi-guard](https://github.com/rennf93/fastapi-guard) | Python |
-| Flask | [flaskapi-guard](https://github.com/rennf93/flaskapi-guard) | Python |
-| Django | [djapi-guard](https://github.com/rennf93/djapi-guard) | Python |
-| Tornado | **tornadoapi-guard** (this) | Python |
-| Express/NestJS/Fastify/Hono | [guard-core-ts](https://github.com/rennf93/guard-core-ts) | TypeScript |
+TornadoAPI Guard is the Tornado adapter for the Guard security ecosystem. Powered by `guard-core` and compatible with the shared telemetry agent. Parallel implementations exist for TypeScript (on npm) and Rust (on crates.io).
+
+### Python
+
+| Package | Role | PyPI |
+|---|---|---|
+| [guard-core](https://github.com/rennf93/guard-core) | Framework-agnostic security engine | [![PyPI](https://img.shields.io/pypi/v/guard-core)](https://pypi.org/project/guard-core/) |
+| [guard-agent](https://github.com/rennf93/guard-agent) | Telemetry agent | [![PyPI](https://img.shields.io/pypi/v/guard-agent)](https://pypi.org/project/guard-agent/) |
+| [fastapi-guard](https://github.com/rennf93/fastapi-guard) | FastAPI / Starlette adapter | [![PyPI](https://img.shields.io/pypi/v/fastapi-guard)](https://pypi.org/project/fastapi-guard/) |
+| [flaskapi-guard](https://github.com/rennf93/flaskapi-guard) | Flask adapter | [![PyPI](https://img.shields.io/pypi/v/flaskapi-guard)](https://pypi.org/project/flaskapi-guard/) |
+| [djapi-guard](https://github.com/rennf93/djapi-guard) | Django adapter | [![PyPI](https://img.shields.io/pypi/v/djapi-guard)](https://pypi.org/project/djapi-guard/) |
+| [tornadoapi-guard](https://github.com/rennf93/tornadoapi-guard) | Tornado adapter (this package) | [![PyPI](https://img.shields.io/pypi/v/tornadoapi-guard)](https://pypi.org/project/tornadoapi-guard/) |
+
+### TypeScript / JavaScript
+
+Published under the [`@guardcore`](https://www.npmjs.com/org/guardcore) npm scope. Source in the [guard-core-ts](https://github.com/rennf93/guard-core-ts) monorepo. **Production-ready.**
+
+| Package | Role | npm |
+|---|---|---|
+| [@guardcore/core](https://github.com/rennf93/guard-core-ts/tree/master/packages/core) | Core engine | [![npm](https://img.shields.io/npm/v/%40guardcore%2Fcore)](https://www.npmjs.com/package/@guardcore/core) |
+| [@guardcore/express](https://github.com/rennf93/guard-core-ts/tree/master/packages/express) | Express adapter | [![npm](https://img.shields.io/npm/v/%40guardcore%2Fexpress)](https://www.npmjs.com/package/@guardcore/express) |
+| [@guardcore/nestjs](https://github.com/rennf93/guard-core-ts/tree/master/packages/nestjs) | NestJS adapter | [![npm](https://img.shields.io/npm/v/%40guardcore%2Fnestjs)](https://www.npmjs.com/package/@guardcore/nestjs) |
+| [@guardcore/fastify](https://github.com/rennf93/guard-core-ts/tree/master/packages/fastify) | Fastify adapter | [![npm](https://img.shields.io/npm/v/%40guardcore%2Ffastify)](https://www.npmjs.com/package/@guardcore/fastify) |
+| [@guardcore/hono](https://github.com/rennf93/guard-core-ts/tree/master/packages/hono) | Hono adapter | [![npm](https://img.shields.io/npm/v/%40guardcore%2Fhono)](https://www.npmjs.com/package/@guardcore/hono) |
+
+### Rust
+
+Published on crates.io. **🚧 Placeholder crates — implementation in progress.**
+
+| Package | Role | crates.io |
+|---|---|---|
+| [guard-core](https://github.com/rennf93/guard-core-rs) | Core engine | [![crates.io](https://img.shields.io/crates/v/guard-core)](https://crates.io/crates/guard-core) |
+| [actix-guard-rs](https://github.com/rennf93/actix-guard-rs) | Actix adapter | [![crates.io](https://img.shields.io/crates/v/actix-guard-rs)](https://crates.io/crates/actix-guard-rs) |
+| [axum-guard-rs](https://github.com/rennf93/axum-guard-rs) | Axum adapter | [![crates.io](https://img.shields.io/crates/v/axum-guard-rs)](https://crates.io/crates/axum-guard-rs) |
+| [rocket-guard-rs](https://github.com/rennf93/rocket-guard-rs) | Rocket adapter | [![crates.io](https://img.shields.io/crates/v/rocket-guard-rs)](https://crates.io/crates/rocket-guard-rs) |
+| [tower-guard-rs](https://github.com/rennf93/tower-guard-rs) | Tower adapter | [![crates.io](https://img.shields.io/crates/v/tower-guard-rs)](https://crates.io/crates/tower-guard-rs) |
 
 ___
 
@@ -65,10 +106,105 @@ pip install tornadoapi-guard
 
 ___
 
-Status
-------
+v1.0.0 release notes
+--------------------
 
-Work in progress. The adapter layer is being built to bring guard-core's full security pipeline to Tornado applications.
+`tornadoapi-guard` 1.0.0 ships against `guard-core >= 3.0.0` and exposes two adapter-side surfaces alongside the upstream fail-secure default.
+
+### Upstream fail-secure default
+
+`SecurityConfig.fail_secure` defaults to `True` (inherited from `guard-core 3.0.0`). If any security check raises an unhandled exception, the request is blocked with HTTP 500 instead of falling through. Opt out on deployments that need fail-open behavior:
+
+```python
+from tornadoapi_guard import SecurityConfig, SecurityMiddleware
+
+config = SecurityConfig(
+    fail_secure=False,
+)
+middleware = SecurityMiddleware(config=config)
+```
+
+The recommended migration is to keep the new default, surface check exceptions in your monitoring, and fix them at the root.
+
+### Reading agent buffer state
+
+`SecurityMiddleware.agent_stats` exposes the agent's live buffer drop counters and circuit-breaker state without reaching into the agent directly. Wire it into a Tornado-style health-check handler:
+
+```python
+import tornado.web
+from tornadoapi_guard import SecurityMiddleware
+
+
+class AgentHealthHandler(tornado.web.RequestHandler):
+    async def get(self) -> None:
+        middleware: SecurityMiddleware = self.application.settings["security_middleware"]
+        self.write(middleware.agent_stats)
+# {"enabled": True,
+#  "buffer_stats": {"events_dropped": 0, "metrics_dropped": 0, ...},
+#  "transport_stats": {"circuit_breaker_state": "CLOSED", ...}}
+```
+
+When the agent is disabled or failed to initialize, the property returns `{"enabled": False}`. Read it on each scrape — it reflects live counters and is not cached.
+
+### Wiring the package version through to the agent
+
+```python
+from tornadoapi_guard import SecurityConfig, __version__
+
+config = SecurityConfig(
+    enable_agent=True,
+    agent_api_key="...",
+    agent_guard_version=__version__,
+)
+```
+
+`__version__` resolves via `importlib.metadata.version("tornadoapi_guard")` and falls back to `"0.0.0+unknown"` when the package is not installed (development from source). Pairs with `guard-core >= 3.0.0`'s `SecurityConfig.agent_guard_version` for SaaS-side telemetry attribution.
+
+___
+
+Quick Start
+-----------
+
+```python
+import asyncio
+import tornado.web
+from tornadoapi_guard import SecurityConfig, SecurityHandler, SecurityMiddleware
+
+config = SecurityConfig(
+    rate_limit=100,
+    auto_ban_threshold=5,
+    enable_penetration_detection=True,
+)
+middleware = SecurityMiddleware(config=config)
+
+
+class HelloHandler(SecurityHandler):
+    async def get(self) -> None:
+        self.write({"message": "hello"})
+
+
+async def main() -> None:
+    await middleware.initialize()
+    app = tornado.web.Application(
+        [(r"/", HelloHandler)],
+        security_middleware=middleware,
+    )
+    app.listen(8000)
+    await asyncio.Event().wait()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+See [`examples/simple_app/main.py`](examples/simple_app/main.py) for a full reference application exercising every decorator and security feature.
+
+___
+
+Documentation
+-------------
+
+Full documentation is published at <https://rennf93.github.io/tornadoapi-guard/latest/>, or build locally with `make serve-docs`.
 
 ___
 
