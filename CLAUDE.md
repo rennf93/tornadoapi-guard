@@ -1,4 +1,5 @@
 # AGENTS.md
+
 Guidance for AI agents (including Claude Code) working in this repository.
 
 ## Project Overview
@@ -22,7 +23,7 @@ TornadoAPI Guard is a production-ready security library for Tornado applications
 
 TornadoAPI Guard is a **thin adapter** over [guard-core](https://github.com/rennf93/guard-core). All security logic (models, handlers, decorators, detection engine, protocols, utilities) lives in the `guard_core` package; this repo contains only the Tornado integration layer.
 
-```
+```text
 guard-core (engine, PyPI dependency)   <- all security logic
 └── tornadoapi-guard (this repo)       <- Tornado handler/middleware adapter
     ├── fastapi-guard                  <- sibling adapter (ASGI middleware)

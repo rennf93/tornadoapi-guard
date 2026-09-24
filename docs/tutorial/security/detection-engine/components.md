@@ -53,6 +53,7 @@ Preprocesses content with the following logic:
 ### Attack Pattern Preservation
 
 The preprocessor looks for indicators like:
+
 - SQL keywords: SELECT, UNION, INSERT, DELETE, etc.
 - Script tags and JavaScript events
 - Path traversal patterns: ../, ..\
@@ -91,6 +92,7 @@ class PatternCompiler:
 #### `compile_pattern(pattern: str) -> re.Pattern | None`
 
 Compiles regex patterns with error handling:
+
 - Caches compiled patterns for performance
 - Returns None for invalid patterns
 - Logs compilation errors
@@ -214,6 +216,7 @@ class PerformanceMonitor:
 #### `record_metric(**kwargs)`
 
 Records execution metrics:
+
 - Pattern identifier
 - Execution time
 - Match result
@@ -253,6 +256,7 @@ Identifies patterns exceeding the threshold:
 #### `detect_anomalies() -> list[dict]`
 
 Uses statistical analysis to find anomalous patterns:
+
 - Calculates mean and standard deviation
 - Identifies patterns beyond anomaly threshold
 - Returns patterns with unusual behavior

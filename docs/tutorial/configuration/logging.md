@@ -205,6 +205,7 @@ tornadoapi_guard                    # Root logger for all TornadoAPI Guard compo
 ```
 
 This namespace isolation ensures:
+
 - TornadoAPI Guard logs are separate from your application logs
 - You can configure log levels for specific components
 - Test frameworks can capture logs via propagation
