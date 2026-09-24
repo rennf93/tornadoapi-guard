@@ -95,6 +95,7 @@ if __name__ == "__main__":
 ```
 
 **Note**: When Redis is disabled:
+
 - Rate limiting and IP bans become instance-local
 - Cloud provider IP ranges refresh every hour
 - Penetration patterns reset on app restart
